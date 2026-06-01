@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
 using Jot.Config;
+using Jot.Diagnostics;
 using Jot.Editor;
 using Jot.Formatting;
 using Jot.Markdown;
@@ -21,7 +22,10 @@ public partial class MainWindow : Window
     private readonly TextBlock _statusPath;
     private readonly TextBlock _statusInfo;
     private readonly ComboBox _languagePicker;
+    private readonly TextBlock _statusDiagnostics;
     private readonly SearchReplacePanel _searchPanel;
+    private readonly SquiggleRenderer _squiggles = new();
+    private readonly DispatcherTimer _diagnosticsTimer;
     private readonly LanguageService _languages = new();
     private readonly EditingOptions _editingOptions = new();
     private readonly FoldingManager _foldingManager;
@@ -55,6 +59,7 @@ public partial class MainWindow : Window
         _statusPath = this.FindControl<TextBlock>("StatusPath")!;
         _statusInfo = this.FindControl<TextBlock>("StatusInfo")!;
         _languagePicker = this.FindControl<ComboBox>("LanguagePicker")!;
+        _statusDiagnostics = this.FindControl<TextBlock>("StatusDiagnostics")!;
         _searchPanel = this.FindControl<SearchReplacePanel>("SearchPanel")!;
         _editorGrid = this.FindControl<Grid>("EditorGrid")!;
         _previewHost = this.FindControl<Border>("PreviewHost")!;
@@ -72,6 +77,11 @@ public partial class MainWindow : Window
         _ = new SmartEditing(_editor, _editingOptions);
         _searchPanel.Attach(_editor);
         _foldingManager = FoldingManager.Install(_editor.TextArea);
+        _editor.TextArea.TextView.BackgroundRenderers.Add(_squiggles);
+        _statusDiagnostics.PointerPressed += (_, _) => GoToFirstProblem();
+
+        _diagnosticsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+        _diagnosticsTimer.Tick += (_, _) => { _diagnosticsTimer.Stop(); UpdateDiagnostics(); };
 
         // Recompute foldings shortly after edits settle, to keep typing responsive.
         _foldingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
@@ -87,6 +97,8 @@ public partial class MainWindow : Window
             UpdateTitle();
             _foldingTimer.Stop();
             _foldingTimer.Start();
+            _diagnosticsTimer.Stop();
+            _diagnosticsTimer.Start();
             if (_previewVisible)
             {
                 _previewTimer.Stop();
@@ -127,6 +139,7 @@ public partial class MainWindow : Window
             _languages.ApplyById(choice.Id);
             UpdateIndentUnit();
             UpdateFoldings();
+            UpdateDiagnostics();
         }
     }
 
@@ -184,6 +197,7 @@ public partial class MainWindow : Window
         SyncLanguagePicker();
         UpdateIndentUnit();
         UpdateFoldings();
+        UpdateDiagnostics();
         UpdateTitle();
         UpdateStatusInfo();
 
@@ -222,6 +236,46 @@ public partial class MainWindow : Window
         {
             // Folding is best-effort; never let it interrupt editing.
         }
+    }
+
+    private void UpdateDiagnostics()
+    {
+        var length = _editor.Document.TextLength;
+        // Clamp each diagnostic into the current document. An error at the very end of the file (an
+        // unterminated value, say) reports an offset equal to the length, so pull it back onto the
+        // last character rather than dropping it.
+        var problems = DiagnosticsAnalyzer.Analyze(_languages.CurrentLanguageId, _editor.Text)
+            .Where(_ => length > 0)
+            .Select(d =>
+            {
+                var offset = Math.Min(d.Offset, length - 1);
+                return d with { Offset = offset, Length = Math.Min(d.Length, length - offset) };
+            })
+            .ToList();
+
+        _squiggles.Diagnostics = problems;
+        _editor.TextArea.TextView.InvalidateVisual();
+
+        if (problems.Count == 0)
+        {
+            _statusDiagnostics.Text = string.Empty;
+        }
+        else
+        {
+            var first = problems[0];
+            var line = _editor.Document.GetLineByOffset(first.Offset).LineNumber;
+            _statusDiagnostics.Text = problems.Count == 1 ? $"⚠ 1 problem" : $"⚠ {problems.Count} problems";
+            ToolTip.SetTip(_statusDiagnostics, $"Line {line}: {first.Message}");
+        }
+    }
+
+    private void GoToFirstProblem()
+    {
+        if (_squiggles.Diagnostics.Count == 0) return;
+        var first = _squiggles.Diagnostics[0];
+        _editor.CaretOffset = Math.Min(first.Offset, _editor.Document.TextLength);
+        _editor.TextArea.Caret.BringCaretToView();
+        _editor.Focus();
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)

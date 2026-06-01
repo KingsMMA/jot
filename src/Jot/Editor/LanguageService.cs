@@ -30,6 +30,16 @@ public sealed class LanguageService
         _installation = editor.InstallTextMate(_registry);
     }
 
+    /// <summary>Switches the syntax token colours to the named bundled TextMate theme.</summary>
+    public void ApplyTheme(string textMateThemeName)
+    {
+        if (_installation is null) return;
+        if (!Enum.TryParse<ThemeName>(textMateThemeName, ignoreCase: true, out var theme))
+            theme = ThemeName.DarkPlus;
+        try { _installation.SetTheme(_registry.LoadTheme(theme)); }
+        catch { /* keep the current theme if the named one cannot be loaded */ }
+    }
+
     /// <summary>All grammar-backed languages, ordered by display name, for the manual picker.</summary>
     public IReadOnlyList<LanguageChoice> AvailableLanguages()
     {

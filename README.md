@@ -23,6 +23,8 @@ file in File Explorer, press `Ctrl+Space`, edit, and you are done.
   line, trimmed trailing whitespace, and a final newline.
 - **Open from File Explorer** with `Ctrl+Space` on the selected file, or right-click and choose
   **Edit with Jot**.
+- **Themes**, including light, rose, lilac, soft blurred backdrops, and a frosted acrylic window —
+  all contrast-checked so text stays clearly legible.
 
 ## Requirements
 
@@ -103,6 +105,10 @@ The defaults:
 
 Notable settings:
 
+- **`theme`** — the colour theme. Pick from the tray icon's **Theme** menu, or set it here. Available
+  themes: `dark` (default), `light`, `rose`, `lilac`, `aurora` and `ember` (soft blurred backdrops),
+  and `acrylic` (a frosted, translucent window). Every theme is contrast-checked so text stays
+  clearly legible.
 - **`hotkey`** — the global shortcut that opens the Explorer selection, for example `Ctrl+Space`,
   `Ctrl+Alt+E`, or `Win+Apostrophe`. If another app already owns your chosen chord, the tray icon
   says the hotkey is unavailable; pick a different one and restart Jot.
@@ -131,6 +137,13 @@ Notable settings:
 Markdown files open with a live, GitHub-styled preview beside the editor (controlled by
 `markdownPreviewByDefault`). Toggle it any time with `Ctrl+Shift+V`. The preview updates as you type.
 Launch straight into it for any file with `jot notes.md --preview`.
+
+## Themes
+
+Switch theme from the tray icon's **Theme** menu, or set `theme` in the configuration. There is the
+default dark theme, a light theme, soft `rose` and `lilac` themes, two with gentle blurred backdrops
+(`aurora` and `ember`), and an `acrylic` frosted-glass window. Every theme is checked against the
+WCAG AA contrast threshold, so however pretty the backdrop, the text stays clearly readable.
 
 ## Error checking
 

@@ -15,11 +15,23 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <!-- Distribution: small framework-dependent binary; the installer guarantees the runtime. -->
+    <!-- Distribution: small framework-dependent binary; the installer guarantees the runtime.
+         ReadyToRun is left off to keep the download small; the warm background agent makes
+         start-up latency a non-issue in practice. -->
     <RollForward>LatestMinor</RollForward>
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRun>false</PublishReadyToRun>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Do not copy XML documentation from referenced packages into the output. -->
+    <AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
+
+  <!-- We use only the WebView2 core; drop the unused WPF and WinForms wrappers. -->
+  <Target Name="RemoveUnusedWebView2Wrappers" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+        Condition="'%(FileName)' == 'Microsoft.Web.WebView2.Wpf' or '%(FileName)' == 'Microsoft.Web.WebView2.WinForms'" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.17" />

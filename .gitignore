@@ -12,3 +12,6 @@ artifacts/
 
 # Local release staging
 dist/
+
+# Local screenshots
+_*.png

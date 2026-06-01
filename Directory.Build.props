@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- The WebView2 package ships unused WPF wrappers that trigger a benign WindowsBase version
+         conflict (MSB3277). We use only the WebView2 core, so demote the warning to a message. -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+</Project>

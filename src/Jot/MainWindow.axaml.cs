@@ -41,10 +41,11 @@ public partial class MainWindow : Window
     private bool _isDirty;
     private bool _suppressLanguageEvent;
 
-    public MainWindow() : this(null) { }
+    public MainWindow() : this(new JotConfig()) { }
 
-    public MainWindow(string? path, bool openPreview = false)
+    public MainWindow(JotConfig config, string? path = null, bool openPreview = false)
     {
+        _config = config;
         InitializeComponent();
         _editor = this.FindControl<TextEditor>("Editor")!;
         _statusPath = this.FindControl<TextBlock>("StatusPath")!;
@@ -55,7 +56,6 @@ public partial class MainWindow : Window
         _previewHost = this.FindControl<Border>("PreviewHost")!;
         _previewSplitter = this.FindControl<GridSplitter>("PreviewSplitter")!;
 
-        _config = ConfigStore.LoadOrCreateConfig();
         _editor.Options.AllowScrollBelowDocument = true;
         _editor.Options.EnableHyperlinks = false;
         _editor.Options.EnableEmailHyperlinks = false;
@@ -97,6 +97,15 @@ public partial class MainWindow : Window
             ApplyDocument(FileDocument.Empty());
 
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        // With the agent on, closing the window only hides it so the process stays warm.
+        Closing += (_, e) =>
+        {
+            if (_config.BackgroundAgent)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+        };
         Opened += (_, _) =>
         {
             // Give the editor focus once shown so typing and shortcuts work immediately.
@@ -143,6 +152,19 @@ public partial class MainWindow : Window
         {
             _statusInfo.Text = $"Could not open: {ex.Message}";
         }
+    }
+
+    /// <summary>Loads a path into the existing window, or an empty buffer when none is given.</summary>
+    public void LoadPath(string? path)
+    {
+        if (!string.IsNullOrEmpty(path)) OpenFile(path);
+        else ApplyDocument(FileDocument.Empty());
+    }
+
+    /// <summary>Opens the Markdown preview if it is not already showing.</summary>
+    public void EnsurePreview()
+    {
+        if (!_previewVisible) ToggleMarkdownPreview();
     }
 
     private void ApplyDocument(FileDocument doc)
@@ -199,6 +221,14 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
+        {
+            if (_searchPanel.IsVisible) _searchPanel.Hide();
+            else HideOrClose();
+            e.Handled = true;
+            return;
+        }
+
         switch (KeyMap.Resolve(e.Key, e.KeyModifiers))
         {
             case EditorCommand.Save:
@@ -252,6 +282,16 @@ public partial class MainWindow : Window
     }
 
     private void RefreshPreview() => _preview?.Update(_editor.Text);
+
+    /// <summary>
+    /// Escape closes the window. With the background agent on, the window is only hidden so the next
+    /// open is instant; otherwise the process exits.
+    /// </summary>
+    private void HideOrClose()
+    {
+        if (_config.BackgroundAgent) Hide();
+        else Close();
+    }
 
     private void FormatDocument()
     {

@@ -1,14 +1,34 @@
 using Avalonia;
+using Jot.Platform;
 
 namespace Jot;
 
 internal static class Program
 {
-    // Avalonia configuration; do not remove or rename without updating the build action.
+    /// <summary>The command line for this launch, read by the app once it starts.</summary>
+    public static StartupOptions Startup { get; private set; } = new();
+
     [STAThread]
     public static int Main(string[] args)
     {
-        return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        Startup = StartupOptions.Parse(args);
+
+        // If an instance is already running, hand our request to it and exit.
+        if (!SingleInstance.TryBecomePrimary())
+        {
+            SingleInstance.AllowForegroundForRunningInstance();
+            SingleInstance.TrySend(Startup.ToMessage(), timeoutMs: 4000);
+            return 0;
+        }
+
+        try
+        {
+            return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        finally
+        {
+            SingleInstance.Release();
+        }
     }
 
     public static AppBuilder BuildAvaloniaApp()

@@ -41,10 +41,14 @@ public static class DiagnosticsAnalyzer
         catch (JsonException ex)
         {
             var line = (int)(ex.LineNumber ?? 0);
-            var column = (int)(ex.BytePositionInLine ?? 0);
-            var offset = OffsetFromLineColumn(text, line, column);
+            var byteColumn = (int)(ex.BytePositionInLine ?? 0);
+            var offset = OffsetFromLineByteColumn(text, line, byteColumn);
             var length = LengthToLineEnd(text, offset);
             return [new Diagnostic(offset, length, CleanJsonMessage(ex.Message))];
+        }
+        catch
+        {
+            return [];
         }
     }
 
@@ -69,6 +73,32 @@ public static class DiagnosticsAnalyzer
         {
             return [];
         }
+    }
+
+    /// <summary>
+    /// Converts a zero-based line and UTF-8 byte column (as reported by the JSON reader) to a
+    /// character offset, so the underline lands correctly even when the line contains multi-byte
+    /// characters before the error.
+    /// </summary>
+    public static int OffsetFromLineByteColumn(string text, int line, int byteColumn)
+    {
+        var offset = OffsetFromLineColumn(text, line, 0);
+        var bytes = 0;
+        while (offset < text.Length && bytes < byteColumn)
+        {
+            var c = text[offset];
+            if (char.IsHighSurrogate(c) && offset + 1 < text.Length && char.IsLowSurrogate(text[offset + 1]))
+            {
+                bytes += 4;
+                offset += 2;
+            }
+            else
+            {
+                bytes += c < 0x80 ? 1 : c < 0x800 ? 2 : 3;
+                offset += 1;
+            }
+        }
+        return Math.Min(offset, text.Length);
     }
 
     /// <summary>Converts a zero-based line and column to a character offset, clamped to the text.</summary>

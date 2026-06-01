@@ -61,6 +61,24 @@ public class DiagnosticsTests
         Assert.Empty(DiagnosticsAnalyzer.Analyze("json", ""));
     }
 
+    [Fact]
+    public void Json_UnterminatedAtEnd_ReportsProblem()
+    {
+        var text = "{ \"a\": 1";
+        var problems = DiagnosticsAnalyzer.Analyze("json", text);
+        Assert.Single(problems);
+        Assert.InRange(problems[0].Offset, 0, text.Length);
+    }
+
+    [Fact]
+    public void OffsetFromLineByteColumn_MapsMultiByteToCharOffset()
+    {
+        // "é" is two UTF-8 bytes; a byte column of 2 should map to the character after it.
+        Assert.Equal(1, DiagnosticsAnalyzer.OffsetFromLineByteColumn("éx", 0, 2));
+        // Pure ASCII behaves like a plain column.
+        Assert.Equal(3, DiagnosticsAnalyzer.OffsetFromLineByteColumn("abcd", 0, 3));
+    }
+
     [Theory]
     [InlineData("abc\ndef\nghi", 0, 0, 0)]
     [InlineData("abc\ndef\nghi", 1, 0, 4)]

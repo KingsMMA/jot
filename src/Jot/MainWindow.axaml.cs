@@ -241,9 +241,16 @@ public partial class MainWindow : Window
     private void UpdateDiagnostics()
     {
         var length = _editor.Document.TextLength;
+        // Clamp each diagnostic into the current document. An error at the very end of the file (an
+        // unterminated value, say) reports an offset equal to the length, so pull it back onto the
+        // last character rather than dropping it.
         var problems = DiagnosticsAnalyzer.Analyze(_languages.CurrentLanguageId, _editor.Text)
-            .Where(d => d.Offset < length)
-            .Select(d => d with { Length = Math.Min(d.Length, length - d.Offset) })
+            .Where(_ => length > 0)
+            .Select(d =>
+            {
+                var offset = Math.Min(d.Offset, length - 1);
+                return d with { Offset = offset, Length = Math.Min(d.Length, length - offset) };
+            })
             .ToList();
 
         _squiggles.Diagnostics = problems;

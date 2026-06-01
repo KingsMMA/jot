@@ -132,6 +132,12 @@ Markdown files open with a live, GitHub-styled preview beside the editor (contro
 `markdownPreviewByDefault`). Toggle it any time with `Ctrl+Shift+V`. The preview updates as you type.
 Launch straight into it for any file with `jot notes.md --preview`.
 
+## Error checking
+
+JSON and YAML files are checked as you type. A genuine parse error gets a red underline at the
+offending spot and a problem count in the status bar; click it to jump to the error. The check runs
+in-process in a few milliseconds and only reports real syntax errors, never style opinions.
+
 ## Uninstall
 
 ```powershell

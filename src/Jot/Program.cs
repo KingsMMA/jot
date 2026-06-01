@@ -13,6 +13,13 @@ internal static class Program
     {
         Startup = StartupOptions.Parse(args);
 
+        // "--quit" just asks the running instance to exit.
+        if (Startup.IsQuit)
+        {
+            SingleInstance.TrySend(IpcMessages.Quit, timeoutMs: 2000);
+            return 0;
+        }
+
         // If an instance is already running, hand our request to it and exit.
         if (!SingleInstance.TryBecomePrimary())
         {

@@ -38,6 +38,13 @@ public class StartupOptionsTests
         var options = StartupOptions.Parse([]);
         Assert.Null(options.Path);
         Assert.False(options.IsAgent);
+        Assert.False(options.IsQuit);
+    }
+
+    [Fact]
+    public void Parse_Quit_SetsQuit()
+    {
+        Assert.True(StartupOptions.Parse(["--quit"]).IsQuit);
     }
 
     [Fact]

@@ -68,10 +68,18 @@ public partial class App : Application
 
     private void OnHotkeyPressed()
     {
-        // Runs on the STA hotkey thread, so the shell selection can be read here directly.
-        var selection = ExplorerSelection.GetForegroundSelection();
-        DebugLog($"hotkey pressed; selection={selection ?? "<none>"}");
-        Dispatcher.UIThread.Post(() => ShowFile(selection, openPreview: false));
+        // Runs on the STA hotkey thread, so the shell selection can be read here directly. Guard the
+        // whole body so a COM hiccup can never tear down the hotkey thread for the rest of the session.
+        try
+        {
+            var selection = ExplorerSelection.GetForegroundSelection();
+            DebugLog($"hotkey pressed; selection={selection ?? "<none>"}");
+            Dispatcher.UIThread.Post(() => ShowFile(selection, openPreview: false));
+        }
+        catch (Exception ex)
+        {
+            DebugLog($"hotkey handler error: {ex.Message}");
+        }
     }
 
     private void SetupTray()
@@ -107,6 +115,7 @@ public partial class App : Application
     {
         _hotkey?.Dispose();
         if (_tray is not null) _tray.IsVisible = false;
+        _window?.PrepareForShutdown();
         _desktop?.Shutdown();
     }
 
@@ -122,7 +131,7 @@ public partial class App : Application
                 ShowFile(null, openPreview: false);
                 break;
             case IpcMessages.Quit:
-                _desktop?.Shutdown();
+                Quit();
                 break;
         }
     }

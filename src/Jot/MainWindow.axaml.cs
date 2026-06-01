@@ -40,6 +40,10 @@ public partial class MainWindow : Window
     private LineEnding _lineEnding = LineEnding.Crlf;
     private bool _isDirty;
     private bool _suppressLanguageEvent;
+    private bool _exiting;
+
+    /// <summary>Lets the application terminate even when the background agent is on.</summary>
+    public void PrepareForShutdown() => _exiting = true;
 
     public MainWindow() : this(new JotConfig()) { }
 
@@ -97,10 +101,11 @@ public partial class MainWindow : Window
             ApplyDocument(FileDocument.Empty());
 
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
-        // With the agent on, closing the window only hides it so the process stays warm.
+        // With the agent on, closing the window only hides it so the process stays warm — unless
+        // we are genuinely shutting down (tray Exit), in which case the close must go through.
         Closing += (_, e) =>
         {
-            if (_config.BackgroundAgent)
+            if (_config.BackgroundAgent && !_exiting)
             {
                 e.Cancel = true;
                 Hide();

@@ -34,7 +34,8 @@ public static class SingleInstance
 
     public static void Release()
     {
-        _mutex?.ReleaseMutex();
+        try { _mutex?.ReleaseMutex(); }
+        catch { /* not owned or already released */ }
         _mutex?.Dispose();
         _mutex = null;
     }

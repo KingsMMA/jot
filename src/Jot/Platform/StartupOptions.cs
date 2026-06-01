@@ -13,11 +13,15 @@ public sealed class StartupOptions
     public bool IsAgent { get; init; }
     public bool OpenPreview { get; init; }
 
+    /// <summary>True for <c>--quit</c>: ask the running instance to exit, then do nothing else.</summary>
+    public bool IsQuit { get; init; }
+
     public static StartupOptions Parse(string[] args)
     {
         string? path = null;
         var isAgent = false;
         var openPreview = false;
+        var isQuit = false;
 
         foreach (var arg in args)
         {
@@ -29,6 +33,9 @@ public sealed class StartupOptions
                 case "--preview":
                     openPreview = true;
                     break;
+                case "--quit":
+                    isQuit = true;
+                    break;
                 default:
                     if (!arg.StartsWith('-') && path is null)
                         path = ResolvePath(arg);
@@ -36,7 +43,7 @@ public sealed class StartupOptions
             }
         }
 
-        return new StartupOptions { Path = path, IsAgent = isAgent, OpenPreview = openPreview };
+        return new StartupOptions { Path = path, IsAgent = isAgent, OpenPreview = openPreview, IsQuit = isQuit };
     }
 
     private static string? ResolvePath(string arg)

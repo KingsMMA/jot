@@ -13,12 +13,15 @@ public partial class MainWindow : Window
     private readonly TextEditor _editor;
     private readonly TextBlock _statusPath;
     private readonly TextBlock _statusInfo;
+    private readonly ComboBox _languagePicker;
+    private readonly LanguageService _languages = new();
 
     private string? _path;
     private Encoding _encoding = new UTF8Encoding(false);
     private bool _hasBom;
     private LineEnding _lineEnding = LineEnding.Crlf;
     private bool _isDirty;
+    private bool _suppressLanguageEvent;
 
     public MainWindow() : this(null) { }
 
@@ -28,6 +31,11 @@ public partial class MainWindow : Window
         _editor = this.FindControl<TextEditor>("Editor")!;
         _statusPath = this.FindControl<TextBlock>("StatusPath")!;
         _statusInfo = this.FindControl<TextBlock>("StatusInfo")!;
+        _languagePicker = this.FindControl<ComboBox>("LanguagePicker")!;
+
+        _languages.Install(_editor);
+        _languagePicker.ItemsSource = _languages.AvailableLanguages();
+        _languagePicker.SelectionChanged += OnLanguagePicked;
 
         _editor.TextChanged += (_, _) => { _isDirty = true; UpdateTitle(); };
         _editor.TextArea.Caret.PositionChanged += (_, _) => UpdateStatusInfo();
@@ -38,6 +46,30 @@ public partial class MainWindow : Window
             ApplyDocument(FileDocument.Empty());
 
         KeyDown += OnKeyDown;
+    }
+
+    private void OnLanguagePicked(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressLanguageEvent) return;
+        if (_languagePicker.SelectedItem is LanguageChoice choice)
+            _languages.ApplyById(choice.Id);
+    }
+
+    private void SyncLanguagePicker()
+    {
+        _suppressLanguageEvent = true;
+        if (_languagePicker.ItemsSource is IEnumerable<LanguageChoice> items)
+        {
+            foreach (var item in items)
+            {
+                if (item.Id == _languages.CurrentLanguageId)
+                {
+                    _languagePicker.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+        _suppressLanguageEvent = false;
     }
 
     public void OpenFile(string path)
@@ -60,6 +92,8 @@ public partial class MainWindow : Window
         _lineEnding = doc.LineEnding;
         _editor.Text = doc.Text;
         _isDirty = false;
+        _languages.DetectAndApply(doc.Path, doc.Text);
+        SyncLanguagePicker();
         UpdateTitle();
         UpdateStatusInfo();
     }

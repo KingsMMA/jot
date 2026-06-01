@@ -10,6 +10,7 @@
     <RootNamespace>Jot</RootNamespace>
     <Version>0.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\jot.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -28,6 +29,10 @@
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.4.1" />
     <PackageReference Include="Markdig" Version="0.45.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
 </Project>

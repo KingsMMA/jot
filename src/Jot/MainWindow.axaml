@@ -8,7 +8,7 @@
         Icon="/Assets/jot.ico"
         Background="#0d1117">
     <DockPanel>
-        <Border DockPanel.Dock="Bottom" Background="#161b22" Height="26" Padding="8,0">
+        <Border DockPanel.Dock="Bottom" Name="StatusBar" Background="#161b22" Height="26" Padding="8,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <TextBlock Grid.Column="0" Name="StatusPath" VerticalAlignment="Center"
                            Foreground="#8b949e" FontSize="12" TextTrimming="CharacterEllipsis" />

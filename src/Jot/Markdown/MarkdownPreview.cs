@@ -20,11 +20,26 @@ public sealed class MarkdownPreview : NativeControlHost
     private CoreWebView2Controller? _controller;
     private bool _shellReady;
     private string _pendingBody = string.Empty;
+    private Theming.MarkdownPalette _palette;
+
+    public MarkdownPreview(Theming.MarkdownPalette palette)
+    {
+        _palette = palette;
+    }
 
     public void Update(string markdown)
     {
         _pendingBody = MarkdownRenderer.ToBodyHtml(markdown);
         if (_shellReady) ApplyBody();
+    }
+
+    /// <summary>Reloads the page with a new colour palette when the theme changes.</summary>
+    public void SetPalette(Theming.MarkdownPalette palette)
+    {
+        _palette = palette;
+        if (_controller is null) return;
+        _shellReady = false;
+        _controller.CoreWebView2.NavigateToString(MarkdownRenderer.Shell(_palette));
     }
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
@@ -54,7 +69,7 @@ public sealed class MarkdownPreview : NativeControlHost
                 _shellReady = true;
                 ApplyBody();
             };
-            core.NavigateToString(MarkdownRenderer.Shell());
+            core.NavigateToString(MarkdownRenderer.Shell(_palette));
         }
         catch
         {

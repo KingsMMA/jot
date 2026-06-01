@@ -4,6 +4,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
@@ -13,6 +16,7 @@ using Jot.Editor;
 using Jot.Formatting;
 using Jot.Markdown;
 using Jot.Search;
+using Jot.Theming;
 
 namespace Jot;
 
@@ -35,8 +39,10 @@ public partial class MainWindow : Window
     private readonly Border _previewHost;
     private readonly GridSplitter _previewSplitter;
     private readonly DispatcherTimer _previewTimer;
+    private readonly Border _statusBar;
     private MarkdownPreview? _preview;
     private bool _previewVisible;
+    private JotTheme _theme = Themes.Get(Themes.DefaultId);
 
     private string? _path;
     private Encoding _encoding = new UTF8Encoding(false);
@@ -65,6 +71,7 @@ public partial class MainWindow : Window
         _editorGrid = this.FindControl<Grid>("EditorGrid")!;
         _previewHost = this.FindControl<Border>("PreviewHost")!;
         _previewSplitter = this.FindControl<GridSplitter>("PreviewSplitter")!;
+        _statusBar = this.FindControl<Border>("StatusBar")!;
 
         _editor.Options.AllowScrollBelowDocument = true;
         _editor.Options.EnableHyperlinks = false;
@@ -74,6 +81,7 @@ public partial class MainWindow : Window
         _languages.Install(_editor);
         _languagePicker.ItemsSource = _languages.AvailableLanguages();
         _languagePicker.SelectionChanged += OnLanguagePicked;
+        ApplyTheme(Themes.Get(_config.Theme));
 
         _ = new SmartEditing(_editor, _editingOptions);
         _searchPanel.Attach(_editor);
@@ -355,12 +363,66 @@ public partial class MainWindow : Window
 
     private MarkdownPreview CreatePreview()
     {
-        var preview = new MarkdownPreview();
+        var preview = new MarkdownPreview(_theme.Markdown());
         _previewHost.Child = preview;
         return preview;
     }
 
     private void RefreshPreview() => _preview?.Update(_editor.Text);
+
+    /// <summary>Switches the theme by id and persists the choice; used by the tray theme menu.</summary>
+    public void ApplyThemeById(string themeId)
+    {
+        ApplyTheme(Themes.Get(themeId));
+    }
+
+    /// <summary>Applies a theme to the window, editor, syntax colours, and Markdown preview.</summary>
+    public void ApplyTheme(JotTheme theme)
+    {
+        _theme = theme;
+        RequestedThemeVariant = theme.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
+
+        // Window backdrop: a background image, the system acrylic material, or a solid colour.
+        if (theme.BackgroundImage is not null)
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.None];
+            Background = LoadImageBrush(theme.BackgroundImage);
+        }
+        else if (theme.Acrylic)
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.Mica, WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur];
+            Background = Brushes.Transparent;
+        }
+        else
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.None];
+            Background = Brush(theme.Background);
+        }
+
+        // Editor surface and text.
+        _editor.Background = Brush(theme.SurfaceArgb());
+        _editor.Foreground = Brush(theme.Foreground);
+        _editor.LineNumbersForeground = Brush(theme.LineNumber);
+        _editor.TextArea.SelectionBrush = Brush(Contrast.WithAlpha(theme.Selection, 0.5));
+
+        // Status bar and chrome.
+        _statusBar.Background = Brush(theme.PanelArgb());
+        _statusPath.Foreground = Brush(theme.Muted);
+        _statusInfo.Foreground = Brush(theme.Muted);
+        _previewSplitter.Background = Brush(theme.Border);
+        _previewHost.Background = Brush(theme.EffectiveTextBackground());
+
+        _languages.ApplyTheme(theme.TextMateTheme);
+        _preview?.SetPalette(theme.Markdown());
+    }
+
+    private static SolidColorBrush Brush(string hex) => new(Color.Parse(hex));
+
+    private static ImageBrush LoadImageBrush(string assetPath)
+    {
+        var bitmap = new Bitmap(AssetLoader.Open(new Uri($"avares://Jot/Assets/{assetPath}")));
+        return new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
+    }
 
     /// <summary>
     /// Escape closes the window. With the background agent on, the window is only hidden so the next

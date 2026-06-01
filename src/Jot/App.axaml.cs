@@ -94,6 +94,8 @@ public partial class App : Application
         var editConfig = new NativeMenuItem("Edit configuration");
         editConfig.Click += (_, _) => ShowFile(ConfigStore.ConfigPath, openPreview: false);
 
+        var themeMenu = new NativeMenuItem("Theme") { Menu = BuildThemeMenu() };
+
         _hotkeyStatus = new NativeMenuItem($"Hotkey: {_config.Hotkey}") { IsEnabled = false };
 
         var exit = new NativeMenuItem("Exit Jot");
@@ -102,6 +104,7 @@ public partial class App : Application
         var menu = new NativeMenu();
         menu.Items.Add(openLast);
         menu.Items.Add(editConfig);
+        menu.Items.Add(themeMenu);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_hotkeyStatus);
         menu.Items.Add(new NativeMenuItemSeparator());
@@ -109,6 +112,34 @@ public partial class App : Application
         _tray.Menu = menu;
 
         TrayIcon.SetIcons(this, new TrayIcons { _tray });
+    }
+
+    private NativeMenu BuildThemeMenu()
+    {
+        var submenu = new NativeMenu();
+        foreach (var theme in Theming.Themes.All)
+        {
+            var item = new NativeMenuItem(theme.Name)
+            {
+                ToggleType = NativeMenuItemToggleType.Radio,
+                IsChecked = string.Equals(theme.Id, _config.Theme, StringComparison.OrdinalIgnoreCase),
+            };
+            var id = theme.Id;
+            item.Click += (_, _) => SelectTheme(submenu, id);
+            submenu.Items.Add(item);
+        }
+        return submenu;
+    }
+
+    private void SelectTheme(NativeMenu submenu, string themeId)
+    {
+        _config.Theme = themeId;
+        ConfigStore.SaveConfig(_config);
+        _window?.ApplyThemeById(themeId);
+
+        foreach (var entry in submenu.Items)
+            if (entry is NativeMenuItem item)
+                item.IsChecked = string.Equals(item.Header, Theming.Themes.Get(themeId).Name, StringComparison.Ordinal);
     }
 
     private void Quit()

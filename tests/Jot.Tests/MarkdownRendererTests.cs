@@ -41,7 +41,7 @@ public class MarkdownRendererTests
     [Fact]
     public void Shell_ContainsContentElementAndStyle()
     {
-        var shell = MarkdownRenderer.Shell();
+        var shell = MarkdownRenderer.Shell(Jot.Theming.Themes.Get("dark").Markdown());
         Assert.Contains("id=\"content\"", shell);
         Assert.Contains("markdown-body", shell);
         Assert.Contains("background: #0d1117", shell);

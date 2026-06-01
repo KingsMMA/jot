@@ -17,6 +17,14 @@ public class ConfigTests
         Assert.Equal("Ctrl+Space", config.Hotkey);
         Assert.True(config.BackgroundAgent);
         Assert.True(config.AutoCloseBrackets);
+        Assert.True(config.MarkdownPreviewByDefault);
+    }
+
+    [Fact]
+    public void MarkdownPreviewByDefault_RoundTrips()
+    {
+        var json = ConfigStore.Serialize(new JotConfig { MarkdownPreviewByDefault = false });
+        Assert.False(ConfigStore.Deserialize(json).MarkdownPreviewByDefault);
     }
 
     [Fact]

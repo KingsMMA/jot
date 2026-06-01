@@ -32,6 +32,12 @@ public sealed class JotConfig
 
     public bool AutoCloseBrackets { get; set; } = true;
 
+    /// <summary>
+    /// Open the Markdown preview automatically when a Markdown file is opened, and keep it closed for
+    /// every other file type. The preview can still be toggled by hand with the preview shortcut.
+    /// </summary>
+    public bool MarkdownPreviewByDefault { get; set; } = true;
+
     /// <summary>Per-language indentation overrides, keyed by language id (for example "go").</summary>
     public Dictionary<string, LanguageOverride> LanguageOverrides { get; set; } = new();
 

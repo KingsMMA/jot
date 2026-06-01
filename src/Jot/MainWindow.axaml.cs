@@ -45,6 +45,7 @@ public partial class MainWindow : Window
     private bool _isDirty;
     private bool _suppressLanguageEvent;
     private bool _exiting;
+    private bool _shown;
 
     /// <summary>Lets the application terminate even when the background agent is on.</summary>
     public void PrepareForShutdown() => _exiting = true;
@@ -125,9 +126,11 @@ public partial class MainWindow : Window
         };
         Opened += (_, _) =>
         {
+            _shown = true;
             // Give the editor focus once shown so typing and shortcuts work immediately.
             _editor.TextArea.Focus();
-            if (openPreview) ToggleMarkdownPreview();
+            ApplyDefaultPreviewState();
+            if (openPreview) EnsurePreview();
         };
     }
 
@@ -185,6 +188,19 @@ public partial class MainWindow : Window
         if (!_previewVisible) ToggleMarkdownPreview();
     }
 
+    /// <summary>
+    /// Applies the configured default: when enabled, the preview is open for Markdown files and closed
+    /// for everything else. A no-op when the option is off, leaving the preview under manual control.
+    /// </summary>
+    private void ApplyDefaultPreviewState()
+    {
+        if (!_config.MarkdownPreviewByDefault) return;
+
+        var isMarkdown = _languages.CurrentLanguageId == "markdown";
+        if (isMarkdown && !_previewVisible) ToggleMarkdownPreview();
+        else if (!isMarkdown && _previewVisible) ToggleMarkdownPreview();
+    }
+
     private void ApplyDocument(FileDocument doc)
     {
         _path = doc.Path;
@@ -200,6 +216,10 @@ public partial class MainWindow : Window
         UpdateDiagnostics();
         UpdateTitle();
         UpdateStatusInfo();
+
+        // Once the window is up, follow the file type for the preview. Doing this before the window is
+        // shown would create the web view too early, so the first document is handled in Opened.
+        if (_shown) ApplyDefaultPreviewState();
 
         if (!string.IsNullOrEmpty(doc.Path))
         {

@@ -95,6 +95,7 @@ The defaults:
   "hotkey": "Ctrl+Space",
   "backgroundAgent": true,
   "autoCloseBrackets": true,
+  "markdownPreviewByDefault": true,
   "languageOverrides": {},
   "externalFormatters": {}
 }
@@ -107,6 +108,8 @@ Notable settings:
   says the hotkey is unavailable; pick a different one and restart Jot.
 - **`backgroundAgent`** — keep Jot warm for instant opens. Set it to `false` to have Jot exit fully
   whenever you close the window.
+- **`markdownPreviewByDefault`** — open the preview automatically for Markdown files and keep it closed
+  for everything else. Set it to `false` to leave the preview closed until you toggle it yourself.
 - **`languageOverrides`** — per-language indentation, for example:
   `"languageOverrides": { "go": { "insertSpaces": false } }`.
 - **`externalFormatters`** — a command per language that receives the document on standard input and
@@ -125,8 +128,9 @@ Notable settings:
 
 ## Markdown preview
 
-Open a Markdown file and press `Ctrl+Shift+V` for a live, GitHub-styled preview beside the editor.
-The preview updates as you type. Launch straight into it with `jot notes.md --preview`.
+Markdown files open with a live, GitHub-styled preview beside the editor (controlled by
+`markdownPreviewByDefault`). Toggle it any time with `Ctrl+Shift+V`. The preview updates as you type.
+Launch straight into it for any file with `jot notes.md --preview`.
 
 ## Error checking
 

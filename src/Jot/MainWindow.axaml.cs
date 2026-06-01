@@ -2,9 +2,11 @@ using System.IO;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
+using Avalonia.Threading;
 using AvaloniaEdit;
+using AvaloniaEdit.Folding;
 using Jot.Editor;
+using Jot.Search;
 
 namespace Jot;
 
@@ -14,7 +16,11 @@ public partial class MainWindow : Window
     private readonly TextBlock _statusPath;
     private readonly TextBlock _statusInfo;
     private readonly ComboBox _languagePicker;
+    private readonly SearchReplacePanel _searchPanel;
     private readonly LanguageService _languages = new();
+    private readonly EditingOptions _editingOptions = new();
+    private readonly FoldingManager _foldingManager;
+    private readonly DispatcherTimer _foldingTimer;
 
     private string? _path;
     private Encoding _encoding = new UTF8Encoding(false);
@@ -32,12 +38,33 @@ public partial class MainWindow : Window
         _statusPath = this.FindControl<TextBlock>("StatusPath")!;
         _statusInfo = this.FindControl<TextBlock>("StatusInfo")!;
         _languagePicker = this.FindControl<ComboBox>("LanguagePicker")!;
+        _searchPanel = this.FindControl<SearchReplacePanel>("SearchPanel")!;
+
+        _editor.Options.IndentationSize = 4;
+        _editor.Options.ConvertTabsToSpaces = true;
+        _editor.Options.AllowScrollBelowDocument = true;
+        _editor.Options.EnableHyperlinks = false;
+        _editor.Options.EnableEmailHyperlinks = false;
 
         _languages.Install(_editor);
         _languagePicker.ItemsSource = _languages.AvailableLanguages();
         _languagePicker.SelectionChanged += OnLanguagePicked;
 
-        _editor.TextChanged += (_, _) => { _isDirty = true; UpdateTitle(); };
+        _ = new SmartEditing(_editor, _editingOptions);
+        _searchPanel.Attach(_editor);
+        _foldingManager = FoldingManager.Install(_editor.TextArea);
+
+        // Recompute foldings shortly after edits settle, to keep typing responsive.
+        _foldingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _foldingTimer.Tick += (_, _) => { _foldingTimer.Stop(); UpdateFoldings(); };
+
+        _editor.TextChanged += (_, _) =>
+        {
+            _isDirty = true;
+            UpdateTitle();
+            _foldingTimer.Stop();
+            _foldingTimer.Start();
+        };
         _editor.TextArea.Caret.PositionChanged += (_, _) => UpdateStatusInfo();
 
         if (!string.IsNullOrEmpty(path))
@@ -52,7 +79,10 @@ public partial class MainWindow : Window
     {
         if (_suppressLanguageEvent) return;
         if (_languagePicker.SelectedItem is LanguageChoice choice)
+        {
             _languages.ApplyById(choice.Id);
+            UpdateFoldings();
+        }
     }
 
     private void SyncLanguagePicker()
@@ -94,17 +124,41 @@ public partial class MainWindow : Window
         _isDirty = false;
         _languages.DetectAndApply(doc.Path, doc.Text);
         SyncLanguagePicker();
+        UpdateFoldings();
         UpdateTitle();
         UpdateStatusInfo();
+    }
+
+    private void UpdateFoldings()
+    {
+        try
+        {
+            var foldings = FoldingStrategies.Create(_languages.CurrentLanguageId, _editor.Document);
+            _foldingManager.UpdateFoldings(foldings, -1);
+        }
+        catch
+        {
+            // Folding is best-effort; never let it interrupt editing.
+        }
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
-        if (ctrl && e.Key == Key.S)
+        switch (e.Key)
         {
-            Save();
-            e.Handled = true;
+            case Key.S when ctrl:
+                Save();
+                e.Handled = true;
+                break;
+            case Key.F when ctrl:
+                _searchPanel.ShowFind();
+                e.Handled = true;
+                break;
+            case Key.H when ctrl:
+                _searchPanel.ShowReplace();
+                e.Handled = true;
+                break;
         }
     }
 

@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write # required to publish release assets on a tag
     steps:
       - uses: actions/checkout@v4
 

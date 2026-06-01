@@ -10,6 +10,7 @@ using AvaloniaEdit.Folding;
 using Jot.Config;
 using Jot.Editor;
 using Jot.Formatting;
+using Jot.Markdown;
 using Jot.Search;
 
 namespace Jot;
@@ -26,6 +27,12 @@ public partial class MainWindow : Window
     private readonly FoldingManager _foldingManager;
     private readonly DispatcherTimer _foldingTimer;
     private readonly JotConfig _config;
+    private readonly Grid _editorGrid;
+    private readonly Border _previewHost;
+    private readonly GridSplitter _previewSplitter;
+    private readonly DispatcherTimer _previewTimer;
+    private MarkdownPreview? _preview;
+    private bool _previewVisible;
 
     private string? _path;
     private Encoding _encoding = new UTF8Encoding(false);
@@ -36,7 +43,7 @@ public partial class MainWindow : Window
 
     public MainWindow() : this(null) { }
 
-    public MainWindow(string? path)
+    public MainWindow(string? path, bool openPreview = false)
     {
         InitializeComponent();
         _editor = this.FindControl<TextEditor>("Editor")!;
@@ -44,6 +51,9 @@ public partial class MainWindow : Window
         _statusInfo = this.FindControl<TextBlock>("StatusInfo")!;
         _languagePicker = this.FindControl<ComboBox>("LanguagePicker")!;
         _searchPanel = this.FindControl<SearchReplacePanel>("SearchPanel")!;
+        _editorGrid = this.FindControl<Grid>("EditorGrid")!;
+        _previewHost = this.FindControl<Border>("PreviewHost")!;
+        _previewSplitter = this.FindControl<GridSplitter>("PreviewSplitter")!;
 
         _config = ConfigStore.LoadOrCreateConfig();
         _editor.Options.AllowScrollBelowDocument = true;
@@ -63,12 +73,21 @@ public partial class MainWindow : Window
         _foldingTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _foldingTimer.Tick += (_, _) => { _foldingTimer.Stop(); UpdateFoldings(); };
 
+        // Refresh the Markdown preview a moment after typing pauses.
+        _previewTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        _previewTimer.Tick += (_, _) => { _previewTimer.Stop(); RefreshPreview(); };
+
         _editor.TextChanged += (_, _) =>
         {
             _isDirty = true;
             UpdateTitle();
             _foldingTimer.Stop();
             _foldingTimer.Start();
+            if (_previewVisible)
+            {
+                _previewTimer.Stop();
+                _previewTimer.Start();
+            }
         };
         _editor.TextArea.Caret.PositionChanged += (_, _) => UpdateStatusInfo();
 
@@ -78,8 +97,12 @@ public partial class MainWindow : Window
             ApplyDocument(FileDocument.Empty());
 
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
-        // Give the editor focus once shown so typing and shortcuts work immediately.
-        Opened += (_, _) => _editor.TextArea.Focus();
+        Opened += (_, _) =>
+        {
+            // Give the editor focus once shown so typing and shortcuts work immediately.
+            _editor.TextArea.Focus();
+            if (openPreview) ToggleMarkdownPreview();
+        };
     }
 
     private void OnLanguagePicked(object? sender, SelectionChangedEventArgs e)
@@ -190,6 +213,9 @@ public partial class MainWindow : Window
             case EditorCommand.Format:
                 FormatDocument();
                 break;
+            case EditorCommand.ToggleMarkdownPreview:
+                ToggleMarkdownPreview();
+                break;
             case EditorCommand.OpenConfig:
                 OpenConfig();
                 break;
@@ -199,6 +225,33 @@ public partial class MainWindow : Window
 
         e.Handled = true;
     }
+
+    private void ToggleMarkdownPreview()
+    {
+        if (_previewVisible)
+        {
+            _previewVisible = false;
+            _editorGrid.ColumnDefinitions[2].Width = new GridLength(0);
+            _previewSplitter.IsVisible = false;
+            return;
+        }
+
+        _preview ??= CreatePreview();
+        _previewVisible = true;
+        _editorGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+        _editorGrid.ColumnDefinitions[2].Width = new GridLength(1, GridUnitType.Star);
+        _previewSplitter.IsVisible = true;
+        RefreshPreview();
+    }
+
+    private MarkdownPreview CreatePreview()
+    {
+        var preview = new MarkdownPreview();
+        _previewHost.Child = preview;
+        return preview;
+    }
+
+    private void RefreshPreview() => _preview?.Update(_editor.Text);
 
     private void FormatDocument()
     {

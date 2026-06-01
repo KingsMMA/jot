@@ -19,17 +19,22 @@
             </Grid>
         </Border>
 
-        <Panel>
-            <ae:TextEditor Name="Editor"
-                           FontFamily="Cascadia Code,Consolas,Menlo,monospace"
-                           FontSize="13"
-                           ShowLineNumbers="True"
-                           Background="#0d1117"
-                           Foreground="#e6edf3"
-                           HorizontalScrollBarVisibility="Auto"
-                           VerticalScrollBarVisibility="Auto" />
-            <search:SearchReplacePanel Name="SearchPanel"
-                                       HorizontalAlignment="Right" VerticalAlignment="Top" />
-        </Panel>
+        <Grid Name="EditorGrid" ColumnDefinitions="*,Auto,0">
+            <Panel Grid.Column="0">
+                <ae:TextEditor Name="Editor"
+                               FontFamily="Cascadia Code,Consolas,Menlo,monospace"
+                               FontSize="13"
+                               ShowLineNumbers="True"
+                               Background="#0d1117"
+                               Foreground="#e6edf3"
+                               HorizontalScrollBarVisibility="Auto"
+                               VerticalScrollBarVisibility="Auto" />
+                <search:SearchReplacePanel Name="SearchPanel"
+                                           HorizontalAlignment="Right" VerticalAlignment="Top" />
+            </Panel>
+            <GridSplitter Grid.Column="1" Name="PreviewSplitter" Width="4"
+                          Background="#21262d" IsVisible="False" />
+            <Border Grid.Column="2" Name="PreviewHost" Background="#0d1117" />
+        </Grid>
     </DockPanel>
 </Window>

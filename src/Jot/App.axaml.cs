@@ -12,8 +12,10 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var path = desktop.Args is { Length: > 0 } a ? a[0] : null;
-            desktop.MainWindow = new MainWindow(path);
+            var args = desktop.Args ?? [];
+            var path = args.FirstOrDefault(a => !a.StartsWith('-'));
+            var openPreview = args.Contains("--preview");
+            desktop.MainWindow = new MainWindow(path, openPreview);
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -1,0 +1,14 @@
+# Build output
+bin/
+obj/
+publish/
+artifacts/
+*.user
+
+# IDE
+.vs/
+.idea/
+*.suo
+
+# Local release staging
+dist/

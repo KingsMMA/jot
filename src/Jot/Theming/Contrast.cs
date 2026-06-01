@@ -14,7 +14,7 @@ public static class Contrast
     public static (double R, double G, double B, double A) Parse(string hex)
     {
         hex = hex.TrimStart('#');
-        // Accept RGB, RRGGBB, and AARRGGBB / RRGGBBAA-free forms; alpha defaults to opaque.
+        // Accept #RGB, #RRGGBB, and #AARRGGBB (alpha first); alpha defaults to opaque.
         if (hex.Length == 3)
             hex = string.Concat(hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]);
 

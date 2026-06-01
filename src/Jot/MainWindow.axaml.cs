@@ -383,10 +383,10 @@ public partial class MainWindow : Window
         RequestedThemeVariant = theme.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
         // Window backdrop: a background image, the system acrylic material, or a solid colour.
-        if (theme.BackgroundImage is not null)
+        if (theme.BackgroundImage is not null && TryLoadImageBrush(theme.BackgroundImage) is { } image)
         {
             TransparencyLevelHint = [WindowTransparencyLevel.None];
-            Background = LoadImageBrush(theme.BackgroundImage);
+            Background = image;
         }
         else if (theme.Acrylic)
         {
@@ -418,10 +418,19 @@ public partial class MainWindow : Window
 
     private static SolidColorBrush Brush(string hex) => new(Color.Parse(hex));
 
-    private static ImageBrush LoadImageBrush(string assetPath)
+    private static ImageBrush? TryLoadImageBrush(string assetPath)
     {
-        var bitmap = new Bitmap(AssetLoader.Open(new Uri($"avares://Jot/Assets/{assetPath}")));
-        return new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
+        // A missing or unreadable backdrop must never stop the window from opening; the caller then
+        // falls back to the theme's solid background.
+        try
+        {
+            var bitmap = new Bitmap(AssetLoader.Open(new Uri($"avares://Jot/Assets/{assetPath}")));
+            return new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>

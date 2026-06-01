@@ -2,10 +2,14 @@ using System.IO;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
+using Jot.Config;
 using Jot.Editor;
+using Jot.Formatting;
 using Jot.Search;
 
 namespace Jot;
@@ -21,6 +25,7 @@ public partial class MainWindow : Window
     private readonly EditingOptions _editingOptions = new();
     private readonly FoldingManager _foldingManager;
     private readonly DispatcherTimer _foldingTimer;
+    private readonly JotConfig _config;
 
     private string? _path;
     private Encoding _encoding = new UTF8Encoding(false);
@@ -40,11 +45,11 @@ public partial class MainWindow : Window
         _languagePicker = this.FindControl<ComboBox>("LanguagePicker")!;
         _searchPanel = this.FindControl<SearchReplacePanel>("SearchPanel")!;
 
-        _editor.Options.IndentationSize = 4;
-        _editor.Options.ConvertTabsToSpaces = true;
+        _config = ConfigStore.LoadOrCreateConfig();
         _editor.Options.AllowScrollBelowDocument = true;
         _editor.Options.EnableHyperlinks = false;
         _editor.Options.EnableEmailHyperlinks = false;
+        ApplyConfig();
 
         _languages.Install(_editor);
         _languagePicker.ItemsSource = _languages.AvailableLanguages();
@@ -72,7 +77,9 @@ public partial class MainWindow : Window
         else
             ApplyDocument(FileDocument.Empty());
 
-        KeyDown += OnKeyDown;
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        // Give the editor focus once shown so typing and shortcuts work immediately.
+        Opened += (_, _) => _editor.TextArea.Focus();
     }
 
     private void OnLanguagePicked(object? sender, SelectionChangedEventArgs e)
@@ -81,6 +88,7 @@ public partial class MainWindow : Window
         if (_languagePicker.SelectedItem is LanguageChoice choice)
         {
             _languages.ApplyById(choice.Id);
+            UpdateIndentUnit();
             UpdateFoldings();
         }
     }
@@ -124,9 +132,33 @@ public partial class MainWindow : Window
         _isDirty = false;
         _languages.DetectAndApply(doc.Path, doc.Text);
         SyncLanguagePicker();
+        UpdateIndentUnit();
         UpdateFoldings();
         UpdateTitle();
         UpdateStatusInfo();
+
+        if (!string.IsNullOrEmpty(doc.Path))
+        {
+            var state = ConfigStore.LoadState();
+            state.LastFile = doc.Path;
+            ConfigStore.SaveState(state);
+        }
+    }
+
+    private void ApplyConfig()
+    {
+        _editor.FontFamily = new FontFamily($"{_config.FontFamily},Consolas,Menlo,monospace");
+        _editor.FontSize = _config.FontSize;
+        _editor.WordWrap = _config.WordWrap;
+        _editor.Options.IndentationSize = _config.IndentSize;
+        _editor.Options.ConvertTabsToSpaces = _config.InsertSpaces;
+        _editingOptions.AutoCloseBrackets = _config.AutoCloseBrackets;
+        UpdateIndentUnit();
+    }
+
+    private void UpdateIndentUnit()
+    {
+        _editingOptions.IndentUnit = _config.IndentUnitFor(_languages.CurrentLanguageId);
     }
 
     private void UpdateFoldings()
@@ -144,22 +176,46 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
-        switch (e.Key)
+        switch (KeyMap.Resolve(e.Key, e.KeyModifiers))
         {
-            case Key.S when ctrl:
+            case EditorCommand.Save:
                 Save();
-                e.Handled = true;
                 break;
-            case Key.F when ctrl:
+            case EditorCommand.Find:
                 _searchPanel.ShowFind();
-                e.Handled = true;
                 break;
-            case Key.H when ctrl:
+            case EditorCommand.Replace:
                 _searchPanel.ShowReplace();
-                e.Handled = true;
                 break;
+            case EditorCommand.Format:
+                FormatDocument();
+                break;
+            case EditorCommand.OpenConfig:
+                OpenConfig();
+                break;
+            default:
+                return;
         }
+
+        e.Handled = true;
+    }
+
+    private void FormatDocument()
+    {
+        var caret = _editor.CaretOffset;
+        var result = DocumentFormatter.Format(_languages.CurrentLanguageId, _editor.Text, _config);
+        if (result.Changed)
+        {
+            _editor.Document.Replace(0, _editor.Document.TextLength, result.Text);
+            _editor.CaretOffset = Math.Min(caret, _editor.Document.TextLength);
+        }
+        _statusInfo.Text = result.Message;
+    }
+
+    private void OpenConfig()
+    {
+        ConfigStore.LoadOrCreateConfig();
+        OpenFile(ConfigStore.ConfigPath);
     }
 
     private void Save()
@@ -172,7 +228,8 @@ public partial class MainWindow : Window
 
         try
         {
-            FileDocument.Save(_path, _editor.Text, _encoding, _hasBom, _lineEnding, SaveOptions.Default);
+            var options = new SaveOptions(_config.TrimTrailingWhitespace, _config.InsertFinalNewline);
+            FileDocument.Save(_path, _editor.Text, _encoding, _hasBom, _lineEnding, options);
             _isDirty = false;
             UpdateTitle();
             _statusInfo.Text = "Saved";

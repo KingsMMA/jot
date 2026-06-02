@@ -11,7 +11,7 @@ public enum EditorCommand
     Replace,
     Format,
     ToggleMarkdownPreview,
-    OpenConfig,
+    OpenSettings,
 }
 
 /// <summary>
@@ -34,7 +34,7 @@ public static class KeyMap
             (Key.F, true, false, false) => EditorCommand.Find,
             (Key.H, true, false, false) => EditorCommand.Replace,
             (Key.V, true, true, false) => EditorCommand.ToggleMarkdownPreview,
-            (Key.OemComma, true, false, false) => EditorCommand.OpenConfig,
+            (Key.OemComma, true, false, false) => EditorCommand.OpenSettings,
             _ => EditorCommand.None,
         };
     }

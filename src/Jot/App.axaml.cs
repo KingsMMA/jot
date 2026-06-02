@@ -18,6 +18,7 @@ public partial class App : Application
     private GlobalHotkey? _hotkey;
     private TrayIcon? _tray;
     private NativeMenuItem? _hotkeyStatus;
+    private NativeMenu? _themeSubmenu;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -40,6 +41,8 @@ public partial class App : Application
             var startup = Program.Startup;
             if (!startup.IsAgent)
                 ShowFile(startup.Path, startup.OpenPreview);
+            if (startup.OpenSettings)
+                OpenSettings();
             // The agent stays hidden and warm; its window is created on the first request.
         }
 
@@ -91,8 +94,8 @@ public partial class App : Application
         var openLast = new NativeMenuItem("Open last file");
         openLast.Click += (_, _) => ShowFile(null, openPreview: false);
 
-        var editConfig = new NativeMenuItem("Edit configuration");
-        editConfig.Click += (_, _) => ShowFile(ConfigStore.ConfigPath, openPreview: false);
+        var settings = new NativeMenuItem("Settings…");
+        settings.Click += (_, _) => OpenSettings();
 
         var themeMenu = new NativeMenuItem("Theme") { Menu = BuildThemeMenu() };
 
@@ -103,7 +106,7 @@ public partial class App : Application
 
         var menu = new NativeMenu();
         menu.Items.Add(openLast);
-        menu.Items.Add(editConfig);
+        menu.Items.Add(settings);
         menu.Items.Add(themeMenu);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_hotkeyStatus);
@@ -116,30 +119,50 @@ public partial class App : Application
 
     private NativeMenu BuildThemeMenu()
     {
-        var submenu = new NativeMenu();
+        _themeSubmenu = new NativeMenu();
         foreach (var theme in Theming.Themes.All)
         {
-            var item = new NativeMenuItem(theme.Name)
-            {
-                ToggleType = NativeMenuItemToggleType.Radio,
-                IsChecked = string.Equals(theme.Id, _config.Theme, StringComparison.OrdinalIgnoreCase),
-            };
+            var item = new NativeMenuItem(theme.Name) { ToggleType = NativeMenuItemToggleType.Radio };
             var id = theme.Id;
-            item.Click += (_, _) => SelectTheme(submenu, id);
-            submenu.Items.Add(item);
+            item.Click += (_, _) => SelectTheme(id);
+            _themeSubmenu.Items.Add(item);
         }
-        return submenu;
+        RefreshThemeChecks();
+        return _themeSubmenu;
     }
 
-    private void SelectTheme(NativeMenu submenu, string themeId)
+    private void SelectTheme(string themeId)
     {
         _config.Theme = themeId;
         ConfigStore.SaveConfig(_config);
         _window?.ApplyThemeById(themeId);
+        RefreshThemeChecks();
+    }
 
-        foreach (var entry in submenu.Items)
+    /// <summary>Keeps the tray theme radio in step with the configured theme.</summary>
+    private void RefreshThemeChecks()
+    {
+        if (_themeSubmenu is null) return;
+        var currentName = Theming.Themes.Get(_config.Theme).Name;
+        foreach (var entry in _themeSubmenu.Items)
             if (entry is NativeMenuItem item)
-                item.IsChecked = string.Equals(item.Header, Theming.Themes.Get(themeId).Name, StringComparison.Ordinal);
+                item.IsChecked = string.Equals(item.Header, currentName, StringComparison.Ordinal);
+    }
+
+    private void OpenSettings()
+    {
+        // Make sure a window exists to host the dialog, without disturbing the current document.
+        if (_window is null) ShowFile(null, openPreview: false);
+        else BringToFront(_window);
+        _window?.OpenSettings();
+    }
+
+    private void OnSettingsSaved(JotConfig config)
+    {
+        _config = config;
+        ConfigStore.SaveConfig(config);
+        _window?.ApplyNewConfig(config);
+        RefreshThemeChecks();
     }
 
     private void Quit()
@@ -157,9 +180,13 @@ public partial class App : Application
         {
             case IpcMessages.Open:
                 ShowFile(parts.Length > 1 ? parts[1] : null, parts.Contains(IpcMessages.PreviewFlag));
+                if (parts.Contains(IpcMessages.Settings)) OpenSettings();
                 break;
             case IpcMessages.Show:
                 ShowFile(null, openPreview: false);
+                break;
+            case IpcMessages.Settings:
+                OpenSettings();
                 break;
             case IpcMessages.Quit:
                 Quit();
@@ -175,6 +202,7 @@ public partial class App : Application
         if (_window is null)
         {
             _window = new MainWindow(_config, effectivePath, openPreview);
+            _window.SettingsSaved += OnSettingsSaved;
             _window.Show();
         }
         else

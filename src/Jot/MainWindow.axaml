@@ -8,8 +8,16 @@
         Icon="/Assets/jot.ico"
         Background="#0d1117">
     <Panel>
-        <!-- Frosted backdrop for acrylic themes; its material (tint) is set per-theme in code. -->
-        <ExperimentalAcrylicBorder Name="AcrylicLayer" IsVisible="False" />
+        <!-- Frosted backdrop for acrylic themes; the tint is overridden per-theme in code. A default
+             material is set here so the control never has a null Material (Avalonia dereferences it
+             when the border attaches to the visual tree, even while hidden). -->
+        <ExperimentalAcrylicBorder Name="AcrylicLayer" IsVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial TintColor="#0d1117"
+                                             TintOpacity="0.8"
+                                             MaterialOpacity="0.6" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Name="StatusBar" Background="#161b22" Height="26" Padding="8,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">

@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     private readonly GridSplitter _previewSplitter;
     private readonly DispatcherTimer _previewTimer;
     private readonly Border _statusBar;
+    private readonly ExperimentalAcrylicBorder _acrylicLayer;
     private MarkdownPreview? _preview;
     private bool _previewVisible;
     private JotTheme _theme = Themes.Get(Themes.DefaultId);
@@ -85,6 +86,7 @@ public partial class MainWindow : Window
         _previewHost = this.FindControl<Border>("PreviewHost")!;
         _previewSplitter = this.FindControl<GridSplitter>("PreviewSplitter")!;
         _statusBar = this.FindControl<Border>("StatusBar")!;
+        _acrylicLayer = this.FindControl<ExperimentalAcrylicBorder>("AcrylicLayer")!;
 
         _editor.Options.AllowScrollBelowDocument = true;
         _editor.Options.EnableHyperlinks = false;
@@ -407,6 +409,7 @@ public partial class MainWindow : Window
         ];
 
         // Window backdrop: a background image, the system acrylic material, or a solid colour.
+        _acrylicLayer.IsVisible = theme.Acrylic;
         if (theme.BackgroundImage is not null && TryLoadImageBrush(theme.BackgroundImage) is { } image)
             Background = image;
         else if (theme.Acrylic)
@@ -414,17 +417,20 @@ public partial class MainWindow : Window
         else
             Background = Brush(theme.Background);
 
-        // Editor surface and text.
-        _editor.Background = Brush(theme.SurfaceArgb());
+        // Editor surface and text. The acrylic theme lets the frosted material show through the editor
+        // and chrome, so those surfaces are fully transparent rather than a translucent tint.
+        _editor.Background = theme.Acrylic ? Brushes.Transparent : Brush(theme.SurfaceArgb());
         _editor.Foreground = Brush(theme.Foreground);
         _editor.LineNumbersForeground = Brush(theme.LineNumber);
         _editor.TextArea.SelectionBrush = Brush(Contrast.WithAlpha(theme.Selection, 0.5));
 
         // Status bar and chrome. Image backdrops get a solid gradient bar so the photograph does not
-        // show through the file name, position, and language readout.
-        _statusBar.Background = theme.OpaqueChrome
-            ? VerticalGradient(Contrast.CompositeHex(Contrast.WithAlpha("#ffffff", 0.08), theme.Panel), theme.Panel)
-            : Brush(theme.PanelArgb());
+        // show through the file name, position, and language readout; acrylic keeps the bar frosted.
+        _statusBar.Background = theme.Acrylic
+            ? Brushes.Transparent
+            : theme.OpaqueChrome
+                ? VerticalGradient(Contrast.CompositeHex(Contrast.WithAlpha("#ffffff", 0.08), theme.Panel), theme.Panel)
+                : Brush(theme.PanelArgb());
         _statusPath.Foreground = Brush(theme.Muted);
         _statusInfo.Foreground = Brush(theme.Muted);
         _previewSplitter.Background = Brush(theme.Border);

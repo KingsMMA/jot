@@ -7,6 +7,14 @@
         Title="Jot"
         Icon="/Assets/jot.ico"
         Background="#0d1117">
+    <Panel>
+        <ExperimentalAcrylicBorder Name="AcrylicLayer" IsVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial TintColor="#0d1117"
+                                             TintOpacity="0.8"
+                                             MaterialOpacity="0.6" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Name="StatusBar" Background="#161b22" Height="26" Padding="8,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
@@ -40,4 +48,5 @@
             <Border Grid.Column="2" Name="PreviewHost" Background="#0d1117" />
         </Grid>
     </DockPanel>
+    </Panel>
 </Window>

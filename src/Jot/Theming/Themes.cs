@@ -185,8 +185,8 @@ public static class Themes
             CurrentLine = "#161b22",
             Border = "#30363d",
             Acrylic = true,
-            SurfaceOpacity = 0.65,
-            UnderlayPeak = "#ffffff",
+            SurfaceOpacity = 0.6,
+            UnderlayPeak = "#cccccc",
         },
     ];
 

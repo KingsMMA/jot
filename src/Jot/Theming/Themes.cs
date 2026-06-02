@@ -74,7 +74,7 @@ public static class Themes
         new JotTheme
         {
             Id = "aurora",
-            Name = "Aurora (backdrop)",
+            Name = "Aurora",
             IsDark = true,
             TextMateTheme = "OneDark",
             Background = "#0c1320",
@@ -93,7 +93,7 @@ public static class Themes
         new JotTheme
         {
             Id = "ember",
-            Name = "Ember (backdrop)",
+            Name = "Ember",
             IsDark = true,
             TextMateTheme = "Monokai",
             Background = "#190f14",
@@ -112,7 +112,7 @@ public static class Themes
         new JotTheme
         {
             Id = "synthwave",
-            Name = "Synthwave (backdrop)",
+            Name = "Synthwave",
             IsDark = true,
             TextMateTheme = "Dracula",
             Background = "#160a18",
@@ -125,13 +125,13 @@ public static class Themes
             CurrentLine = "#1e1230",
             Border = "#3a2048",
             BackgroundImage = "themes/synthwave.png",
-            SurfaceOpacity = 0.5,
-            UnderlayPeak = "#6a1e50",
+            SurfaceOpacity = 0.55,
+            UnderlayPeak = "#803d50",
         },
         new JotTheme
         {
             Id = "winter",
-            Name = "Winter (backdrop)",
+            Name = "Winter",
             IsDark = true,
             TextMateTheme = "OneDark",
             Background = "#120e22",
@@ -144,26 +144,26 @@ public static class Themes
             CurrentLine = "#1c1838",
             Border = "#342c52",
             BackgroundImage = "themes/winter.png",
-            SurfaceOpacity = 0.5,
-            UnderlayPeak = "#52406e",
+            SurfaceOpacity = 0.55,
+            UnderlayPeak = "#71627f",
         },
         new JotTheme
         {
             Id = "acrylic",
-            Name = "Acrylic (frosted)",
+            Name = "Acrylic",
             IsDark = true,
             TextMateTheme = "DarkPlus",
             Background = "#0d1117",
-            Foreground = "#e6edf3",
+            Foreground = "#eef2f6",
             Panel = "#161b22",
-            Muted = "#aab4c2",
+            Muted = "#c2cad2",
             Accent = "#6cb0ff",
-            LineNumber = "#8b96a5",
+            LineNumber = "#b0bac4",
             Selection = "#264f78",
             CurrentLine = "#161b22",
             Border = "#30363d",
             Acrylic = true,
-            SurfaceOpacity = 0.85,
+            SurfaceOpacity = 0.7,
             UnderlayPeak = "#ffffff",
         },
     ];

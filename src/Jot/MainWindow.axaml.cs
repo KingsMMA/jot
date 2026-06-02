@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -394,22 +395,24 @@ public partial class MainWindow : Window
         _theme = theme;
         RequestedThemeVariant = theme.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
+        // Keep the window able to show the acrylic/Mica backdrop at all times, so switching to the
+        // acrylic theme takes effect even after the window is already open; an opaque background
+        // simply hides it for the other themes.
+        TransparencyLevelHint =
+        [
+            WindowTransparencyLevel.AcrylicBlur,
+            WindowTransparencyLevel.Mica,
+            WindowTransparencyLevel.Blur,
+            WindowTransparencyLevel.None,
+        ];
+
         // Window backdrop: a background image, the system acrylic material, or a solid colour.
         if (theme.BackgroundImage is not null && TryLoadImageBrush(theme.BackgroundImage) is { } image)
-        {
-            TransparencyLevelHint = [WindowTransparencyLevel.None];
             Background = image;
-        }
         else if (theme.Acrylic)
-        {
-            TransparencyLevelHint = [WindowTransparencyLevel.Mica, WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur];
             Background = Brushes.Transparent;
-        }
         else
-        {
-            TransparencyLevelHint = [WindowTransparencyLevel.None];
             Background = Brush(theme.Background);
-        }
 
         // Editor surface and text.
         _editor.Background = Brush(theme.SurfaceArgb());
@@ -417,8 +420,11 @@ public partial class MainWindow : Window
         _editor.LineNumbersForeground = Brush(theme.LineNumber);
         _editor.TextArea.SelectionBrush = Brush(Contrast.WithAlpha(theme.Selection, 0.5));
 
-        // Status bar and chrome.
-        _statusBar.Background = Brush(theme.PanelArgb());
+        // Status bar and chrome. Image backdrops get a solid gradient bar so the photograph does not
+        // show through the file name, position, and language readout.
+        _statusBar.Background = theme.OpaqueChrome
+            ? VerticalGradient(Contrast.CompositeHex(Contrast.WithAlpha("#ffffff", 0.08), theme.Panel), theme.Panel)
+            : Brush(theme.PanelArgb());
         _statusPath.Foreground = Brush(theme.Muted);
         _statusInfo.Foreground = Brush(theme.Muted);
         _previewSplitter.Background = Brush(theme.Border);
@@ -429,6 +435,18 @@ public partial class MainWindow : Window
     }
 
     private static SolidColorBrush Brush(string hex) => new(Color.Parse(hex));
+
+    private static LinearGradientBrush VerticalGradient(string topHex, string bottomHex)
+    {
+        var brush = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+        };
+        brush.GradientStops.Add(new GradientStop(Color.Parse(topHex), 0));
+        brush.GradientStops.Add(new GradientStop(Color.Parse(bottomHex), 1));
+        return brush;
+    }
 
     private static ImageBrush? TryLoadImageBrush(string assetPath)
     {

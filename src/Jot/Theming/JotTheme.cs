@@ -41,6 +41,12 @@ public sealed class JotTheme
     /// <summary>Use the system acrylic/Mica material as the backdrop (frosts the desktop behind the window).</summary>
     public bool Acrylic { get; init; }
 
+    /// <summary>
+    /// Give the status bar a solid gradient instead of letting the backdrop show through it. Used for
+    /// image backdrops, where a busy photograph behind the bar reads poorly.
+    /// </summary>
+    public bool OpaqueChrome { get; init; }
+
     /// <summary>Opacity of the editor and chrome surfaces when a backdrop is present.</summary>
     public double SurfaceOpacity { get; init; } = 1.0;
 

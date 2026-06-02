@@ -127,6 +127,7 @@ public static class Themes
             BackgroundImage = "themes/celestial.jpg",
             SurfaceOpacity = 0.4,
             UnderlayPeak = "#888888",
+            OpaqueChrome = true,
         },
         new JotTheme
         {
@@ -146,6 +147,7 @@ public static class Themes
             BackgroundImage = "themes/cosmic.jpg",
             SurfaceOpacity = 0.4,
             UnderlayPeak = "#808080",
+            OpaqueChrome = true,
         },
         new JotTheme
         {
@@ -165,6 +167,7 @@ public static class Themes
             BackgroundImage = "themes/winter.jpg",
             SurfaceOpacity = 0.4,
             UnderlayPeak = "#8a8a8a",
+            OpaqueChrome = true,
         },
         new JotTheme
         {
@@ -173,16 +176,16 @@ public static class Themes
             IsDark = true,
             TextMateTheme = "DarkPlus",
             Background = "#0d1117",
-            Foreground = "#eef2f6",
+            Foreground = "#f0f4f8",
             Panel = "#161b22",
-            Muted = "#c2cad2",
+            Muted = "#ccd4dc",
             Accent = "#6cb0ff",
-            LineNumber = "#b0bac4",
+            LineNumber = "#c0c8d0",
             Selection = "#264f78",
             CurrentLine = "#161b22",
             Border = "#30363d",
             Acrylic = true,
-            SurfaceOpacity = 0.7,
+            SurfaceOpacity = 0.65,
             UnderlayPeak = "#ffffff",
         },
     ];

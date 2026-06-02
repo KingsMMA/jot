@@ -55,6 +55,14 @@ public partial class MainWindow : Window
     private bool _suppressLanguageEvent;
     private bool _exiting;
     private bool _shown;
+    private bool _settingsOpen;
+
+    /// <summary>
+    /// Whether the background agent is resident, captured at startup. The close-to-hide behaviour and
+    /// the process shutdown mode are both fixed at launch, so changing the setting only takes effect
+    /// next time Jot starts (as the settings editor states).
+    /// </summary>
+    private readonly bool _agentResident;
 
     /// <summary>Lets the application terminate even when the background agent is on.</summary>
     public void PrepareForShutdown() => _exiting = true;
@@ -64,6 +72,7 @@ public partial class MainWindow : Window
     public MainWindow(JotConfig config, string? path = null, bool openPreview = false)
     {
         _config = config;
+        _agentResident = config.BackgroundAgent;
         InitializeComponent();
         _editor = this.FindControl<TextEditor>("Editor")!;
         _statusPath = this.FindControl<TextBlock>("StatusPath")!;
@@ -129,7 +138,7 @@ public partial class MainWindow : Window
         // we are genuinely shutting down (tray Exit), in which case the close must go through.
         Closing += (_, e) =>
         {
-            if (_config.BackgroundAgent && !_exiting)
+            if (_agentResident && !_exiting)
             {
                 e.Cancel = true;
                 Hide();
@@ -442,7 +451,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void HideOrClose()
     {
-        if (_config.BackgroundAgent) Hide();
+        if (_agentResident) Hide();
         else Close();
     }
 
@@ -467,11 +476,20 @@ public partial class MainWindow : Window
     /// <summary>Opens the settings editor; on save, notifies listeners with the new configuration.</summary>
     public async void OpenSettings()
     {
-        Activate();
-        var dialog = new Settings.SettingsWindow(_config, _theme, onEditRaw: OpenConfig);
-        var result = await dialog.ShowDialog<JotConfig?>(this);
-        if (result is not null)
-            SettingsSaved?.Invoke(result);
+        if (_settingsOpen) { Activate(); return; }
+        _settingsOpen = true;
+        try
+        {
+            Activate();
+            var dialog = new Settings.SettingsWindow(_config, _theme, onEditRaw: OpenConfig);
+            var result = await dialog.ShowDialog<JotConfig?>(this);
+            if (result is not null)
+                SettingsSaved?.Invoke(result);
+        }
+        finally
+        {
+            _settingsOpen = false;
+        }
     }
 
     /// <summary>Adopts a new configuration and applies everything that can change without a restart.</summary>

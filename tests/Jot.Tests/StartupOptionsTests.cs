@@ -48,6 +48,25 @@ public class StartupOptionsTests
     }
 
     [Fact]
+    public void Parse_Settings_SetsOpenSettings()
+    {
+        Assert.True(StartupOptions.Parse(["--settings"]).OpenSettings);
+    }
+
+    [Fact]
+    public void ToMessage_SettingsNoPath_IsSettingsMessage()
+    {
+        Assert.Equal("SETTINGS", new StartupOptions { OpenSettings = true }.ToMessage());
+    }
+
+    [Fact]
+    public void ToMessage_PathWithSettings_AppendsSettingsFlag()
+    {
+        var options = new StartupOptions { Path = @"C:\x\y.txt", OpenSettings = true };
+        Assert.Equal("OPEN\tC:\\x\\y.txt\tSETTINGS", options.ToMessage());
+    }
+
+    [Fact]
     public void ToMessage_WithPath_IsOpenMessage()
     {
         var options = new StartupOptions { Path = @"C:\x\y.txt" };

@@ -67,9 +67,16 @@ public sealed class StartupOptions
     }
 
     /// <summary>The message a secondary launch sends to the running instance.</summary>
-    public string ToMessage() => Path is null
-        ? IpcMessages.Show
-        : $"{IpcMessages.Open}\t{Path}{(OpenPreview ? "\t" + IpcMessages.PreviewFlag : string.Empty)}";
+    public string ToMessage()
+    {
+        if (Path is null)
+            return OpenSettings ? IpcMessages.Settings : IpcMessages.Show;
+
+        var message = $"{IpcMessages.Open}\t{Path}";
+        if (OpenPreview) message += "\t" + IpcMessages.PreviewFlag;
+        if (OpenSettings) message += "\t" + IpcMessages.Settings;
+        return message;
+    }
 }
 
 public static class IpcMessages
@@ -77,5 +84,6 @@ public static class IpcMessages
     public const string Open = "OPEN";
     public const string Show = "SHOW";
     public const string Quit = "QUIT";
+    public const string Settings = "SETTINGS";
     public const string PreviewFlag = "PREVIEW";
 }

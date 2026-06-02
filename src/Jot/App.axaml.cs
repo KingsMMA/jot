@@ -18,6 +18,7 @@ public partial class App : Application
     private GlobalHotkey? _hotkey;
     private TrayIcon? _tray;
     private NativeMenuItem? _hotkeyStatus;
+    private NativeMenu? _themeSubmenu;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -118,30 +119,34 @@ public partial class App : Application
 
     private NativeMenu BuildThemeMenu()
     {
-        var submenu = new NativeMenu();
+        _themeSubmenu = new NativeMenu();
         foreach (var theme in Theming.Themes.All)
         {
-            var item = new NativeMenuItem(theme.Name)
-            {
-                ToggleType = NativeMenuItemToggleType.Radio,
-                IsChecked = string.Equals(theme.Id, _config.Theme, StringComparison.OrdinalIgnoreCase),
-            };
+            var item = new NativeMenuItem(theme.Name) { ToggleType = NativeMenuItemToggleType.Radio };
             var id = theme.Id;
-            item.Click += (_, _) => SelectTheme(submenu, id);
-            submenu.Items.Add(item);
+            item.Click += (_, _) => SelectTheme(id);
+            _themeSubmenu.Items.Add(item);
         }
-        return submenu;
+        RefreshThemeChecks();
+        return _themeSubmenu;
     }
 
-    private void SelectTheme(NativeMenu submenu, string themeId)
+    private void SelectTheme(string themeId)
     {
         _config.Theme = themeId;
         ConfigStore.SaveConfig(_config);
         _window?.ApplyThemeById(themeId);
+        RefreshThemeChecks();
+    }
 
-        foreach (var entry in submenu.Items)
+    /// <summary>Keeps the tray theme radio in step with the configured theme.</summary>
+    private void RefreshThemeChecks()
+    {
+        if (_themeSubmenu is null) return;
+        var currentName = Theming.Themes.Get(_config.Theme).Name;
+        foreach (var entry in _themeSubmenu.Items)
             if (entry is NativeMenuItem item)
-                item.IsChecked = string.Equals(item.Header, Theming.Themes.Get(themeId).Name, StringComparison.Ordinal);
+                item.IsChecked = string.Equals(item.Header, currentName, StringComparison.Ordinal);
     }
 
     private void OpenSettings()
@@ -157,6 +162,7 @@ public partial class App : Application
         _config = config;
         ConfigStore.SaveConfig(config);
         _window?.ApplyNewConfig(config);
+        RefreshThemeChecks();
     }
 
     private void Quit()
@@ -174,9 +180,13 @@ public partial class App : Application
         {
             case IpcMessages.Open:
                 ShowFile(parts.Length > 1 ? parts[1] : null, parts.Contains(IpcMessages.PreviewFlag));
+                if (parts.Contains(IpcMessages.Settings)) OpenSettings();
                 break;
             case IpcMessages.Show:
                 ShowFile(null, openPreview: false);
+                break;
+            case IpcMessages.Settings:
+                OpenSettings();
                 break;
             case IpcMessages.Quit:
                 Quit();

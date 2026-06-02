@@ -108,9 +108,9 @@ The defaults:
 Notable settings:
 
 - **`theme`** — the colour theme. Pick from the tray icon's **Theme** menu, or set it here. Available
-  themes: `dark` (default), `light`, `rose`, `lilac`, the soft backdrops `aurora` and `ember`, the
-  illustrated scenes `synthwave` and `winter`, and `acrylic` (a frosted, translucent window). Every
-  theme is contrast-checked so text stays clearly legible.
+  themes: `dark` (default), `light`, `rose`, `lilac`, the gradient backdrops `aurora` and `ember`, the
+  image backdrops `celestial`, `cosmic`, and `winter`, and `acrylic` (a frosted, translucent window).
+  Every theme is contrast-checked so text stays clearly legible.
 - **`hotkey`** — the global shortcut that opens the Explorer selection, for example `Ctrl+Space`,
   `Ctrl+Alt+E`, or `Win+Apostrophe`. If another app already owns your chosen chord, the tray icon
   says the hotkey is unavailable; pick a different one and restart Jot.
@@ -144,11 +144,11 @@ Launch straight into it for any file with `jot notes.md --preview`.
 
 Switch theme from the tray icon's **Theme** menu, or set `theme` in the configuration. There is the
 default dark theme, a light theme, soft `rose` and `lilac` themes, the gentle gradient backdrops
-`aurora` and `ember`, the illustrated scenes `synthwave` (an outrun sunset) and `winter` (a snowy
-night), and an `acrylic` frosted, translucent window. The backdrops and scenes sit behind a
-translucent surface, and every theme is checked against the WCAG AA contrast threshold — a test even
-loads the scene images and confirms no pixel is brighter than the contrast-tested level — so however
-pretty the background, the text stays clearly readable.
+`aurora` and `ember`, the image backdrops `celestial`, `cosmic`, and `winter`, and an `acrylic`
+frosted, translucent window. The image backdrops are darkened and sit behind a translucent surface,
+and every theme is checked against the WCAG AA contrast threshold — a test even loads each background
+image and confirms no pixel is brighter than the contrast-tested level — so however pretty the
+background, the text stays clearly readable.
 
 ## Error checking
 

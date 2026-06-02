@@ -41,10 +41,20 @@ public sealed class JotTheme
     /// <summary>Use the system acrylic/Mica material as the backdrop (frosts the desktop behind the window).</summary>
     public bool Acrylic { get; init; }
 
+    /// <summary>
+    /// Give the status bar a solid gradient instead of letting the backdrop show through it. Used for
+    /// image backdrops, where a busy photograph behind the bar reads poorly.
+    /// </summary>
+    public bool OpaqueChrome { get; init; }
+
     /// <summary>Opacity of the editor and chrome surfaces when a backdrop is present.</summary>
     public double SurfaceOpacity { get; init; } = 1.0;
 
-    /// <summary>The lightest colour that can sit behind the surface (image peak, or white for acrylic).</summary>
+    /// <summary>
+    /// The lightest colour that can effectively sit behind the surface: the brightest pixel for an
+    /// image backdrop, or — for acrylic — the brightest the desktop can read as once the system blur
+    /// and tint have dimmed it (never pure white, so a light grey is the realistic worst case).
+    /// </summary>
     public string? UnderlayPeak { get; init; }
 
     public bool HasBackdrop => BackgroundImage is not null || Acrylic;

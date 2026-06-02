@@ -108,9 +108,9 @@ The defaults:
 Notable settings:
 
 - **`theme`** — the colour theme. Pick from the tray icon's **Theme** menu, or set it here. Available
-  themes: `dark` (default), `light`, `rose`, `lilac`, `aurora` and `ember` (soft blurred backdrops),
-  and `acrylic` (a frosted, translucent window). Every theme is contrast-checked so text stays
-  clearly legible.
+  themes: `dark` (default), `light`, `rose`, `lilac`, the gradient backdrops `aurora` and `ember`, the
+  image backdrops `celestial`, `cosmic`, and `winter`, and the frosted, translucent windows `acrylic`
+  and `acrylic-lilac`. Every theme is contrast-checked so text stays clearly legible.
 - **`hotkey`** — the global shortcut that opens the Explorer selection, for example `Ctrl+Space`,
   `Ctrl+Alt+E`, or `Win+Apostrophe`. If another app already owns your chosen chord, the tray icon
   says the hotkey is unavailable; pick a different one and restart Jot.
@@ -143,9 +143,12 @@ Launch straight into it for any file with `jot notes.md --preview`.
 ## Themes
 
 Switch theme from the tray icon's **Theme** menu, or set `theme` in the configuration. There is the
-default dark theme, a light theme, soft `rose` and `lilac` themes, two with gentle blurred backdrops
-(`aurora` and `ember`), and an `acrylic` frosted-glass window. Every theme is checked against the
-WCAG AA contrast threshold, so however pretty the backdrop, the text stays clearly readable.
+default dark theme, a light theme, soft `rose` and `lilac` themes, the gentle gradient backdrops
+`aurora` and `ember`, the image backdrops `celestial`, `cosmic`, and `winter`, and the `acrylic` and
+`acrylic-lilac` frosted, translucent windows. The image backdrops are darkened and sit behind a translucent surface,
+and every theme is checked against the WCAG AA contrast threshold — a test even loads each background
+image and confirms no pixel is brighter than the contrast-tested level — so however pretty the
+background, the text stays clearly readable.
 
 ## Error checking
 

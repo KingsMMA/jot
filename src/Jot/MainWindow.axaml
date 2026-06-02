@@ -7,6 +7,9 @@
         Title="Jot"
         Icon="/Assets/jot.ico"
         Background="#0d1117">
+    <Panel>
+        <!-- Frosted backdrop for acrylic themes; its material (tint) is set per-theme in code. -->
+        <ExperimentalAcrylicBorder Name="AcrylicLayer" IsVisible="False" />
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Name="StatusBar" Background="#161b22" Height="26" Padding="8,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
@@ -40,4 +43,5 @@
             <Border Grid.Column="2" Name="PreviewHost" Background="#0d1117" />
         </Grid>
     </DockPanel>
+    </Panel>
 </Window>

@@ -8,13 +8,8 @@
         Icon="/Assets/jot.ico"
         Background="#0d1117">
     <Panel>
-        <ExperimentalAcrylicBorder Name="AcrylicLayer" IsVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial TintColor="#0d1117"
-                                             TintOpacity="0.8"
-                                             MaterialOpacity="0.6" />
-            </ExperimentalAcrylicBorder.Material>
-        </ExperimentalAcrylicBorder>
+        <!-- Frosted backdrop for acrylic themes; its material (tint) is set per-theme in code. -->
+        <ExperimentalAcrylicBorder Name="AcrylicLayer" IsVisible="False" />
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Name="StatusBar" Background="#161b22" Height="26" Padding="8,0">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">

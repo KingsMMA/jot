@@ -188,6 +188,25 @@ public static class Themes
             SurfaceOpacity = 0.6,
             UnderlayPeak = "#cccccc",
         },
+        new JotTheme
+        {
+            Id = "acrylic-lilac",
+            Name = "Acrylic Lilac",
+            IsDark = true,
+            TextMateTheme = "Dracula",
+            Background = "#1b1830",
+            Foreground = "#f1ecff",
+            Panel = "#272145",
+            Muted = "#cdc2ee",
+            Accent = "#c8a2ff",
+            LineNumber = "#c4b8ea",
+            Selection = "#3a3070",
+            CurrentLine = "#232043",
+            Border = "#393158",
+            Acrylic = true,
+            SurfaceOpacity = 0.6,
+            UnderlayPeak = "#cccccc",
+        },
     ];
 
     private static readonly Dictionary<string, JotTheme> ById =

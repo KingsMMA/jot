@@ -69,13 +69,15 @@ Run the same command again. Jot updates itself in place to the latest version.
 | `Ctrl+H` | Replace |
 | `Ctrl+Shift+F` or `Alt+Shift+F` | Format the document |
 | `Ctrl+Shift+V` | Toggle the Markdown preview |
-| `Ctrl+,` | Edit the configuration |
+| `Ctrl+,` | Open settings |
 | `Esc` | Close the find panel, or hide the window |
 
 ## Configuration
 
 Jot reads one configuration file that applies to every file you edit. There are no per-project
-settings. Open it any time with `Ctrl+,`, or from the tray icon's **Edit configuration**. It lives at:
+settings. Edit it with the settings window (`Ctrl+,`, or **Settings…** from the tray icon), which has
+a control for each option and an **Edit raw config file…** button for the advanced map settings. The
+file lives at:
 
 ```
 %APPDATA%\Jot\config.json

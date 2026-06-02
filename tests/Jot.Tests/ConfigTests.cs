@@ -53,6 +53,26 @@ public class ConfigTests
     }
 
     [Fact]
+    public void Clone_PreservesAdvancedMaps_TheWaySettingsEditorRelies()
+    {
+        // The settings editor clones the config via Serialize/Deserialize and only edits scalar
+        // fields, so the maps (which have no control in the form) must survive a round-trip intact.
+        var original = new JotConfig
+        {
+            Theme = "rose",
+            LanguageOverrides = { ["go"] = new LanguageOverride { InsertSpaces = false } },
+            ExternalFormatters = { ["python"] = "black -" },
+        };
+
+        var clone = ConfigStore.Deserialize(ConfigStore.Serialize(original));
+
+        Assert.True(clone.LanguageOverrides.ContainsKey("go"));
+        Assert.False(clone.LanguageOverrides["go"].InsertSpaces);
+        Assert.Equal("black -", clone.ExternalFormatters["python"]);
+        Assert.Equal("rose", clone.Theme);
+    }
+
+    [Fact]
     public void Deserialize_PreservesUnknownKeys_OnReSave()
     {
         var restored = ConfigStore.Deserialize("{ \"indentSize\": 8, \"futureSetting\": 42 }");

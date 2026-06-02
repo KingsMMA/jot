@@ -16,12 +16,16 @@ public sealed class StartupOptions
     /// <summary>True for <c>--quit</c>: ask the running instance to exit, then do nothing else.</summary>
     public bool IsQuit { get; init; }
 
+    /// <summary>True for <c>--settings</c>: open the settings editor.</summary>
+    public bool OpenSettings { get; init; }
+
     public static StartupOptions Parse(string[] args)
     {
         string? path = null;
         var isAgent = false;
         var openPreview = false;
         var isQuit = false;
+        var openSettings = false;
 
         foreach (var arg in args)
         {
@@ -36,6 +40,9 @@ public sealed class StartupOptions
                 case "--quit":
                     isQuit = true;
                     break;
+                case "--settings":
+                    openSettings = true;
+                    break;
                 default:
                     if (!arg.StartsWith('-') && path is null)
                         path = ResolvePath(arg);
@@ -43,7 +50,14 @@ public sealed class StartupOptions
             }
         }
 
-        return new StartupOptions { Path = path, IsAgent = isAgent, OpenPreview = openPreview, IsQuit = isQuit };
+        return new StartupOptions
+        {
+            Path = path,
+            IsAgent = isAgent,
+            OpenPreview = openPreview,
+            IsQuit = isQuit,
+            OpenSettings = openSettings,
+        };
     }
 
     private static string? ResolvePath(string arg)

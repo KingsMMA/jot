@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Jot.Settings.SettingsWindow"
+        Width="520" Height="660"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Title="Jot Settings"
+        Icon="/Assets/jot.ico"
+        Background="#0d1117">
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Name="ButtonBar" Background="#161b22" Padding="16,10">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <Button Grid.Column="0" Name="EditRawButton" Content="Edit raw config file…"
+                        FontSize="12" />
+                <Button Grid.Column="2" Name="CancelButton" Content="Cancel" Width="88" Margin="0,0,8,0"
+                        IsCancel="True" />
+                <Button Grid.Column="3" Name="SaveButton" Content="Save" Width="88"
+                        Classes="accent" IsDefault="True" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer>
+            <StackPanel Margin="20,16" Spacing="6">
+                <TextBlock Text="Editor" Classes="section" />
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Indent size" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Column="1" Name="IndentSizeBox" Minimum="1" Maximum="8"
+                                   Increment="1" Width="120" FormatString="0" />
+                </Grid>
+                <CheckBox Name="InsertSpacesToggle" Content="Insert spaces instead of tabs" />
+                <CheckBox Name="AutoCloseToggle" Content="Auto-close brackets and quotes" />
+                <CheckBox Name="WordWrapToggle" Content="Word wrap" />
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Font family" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Name="FontFamilyBox" Width="220" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Font size" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Column="1" Name="FontSizeBox" Minimum="6" Maximum="72"
+                                   Increment="1" Width="120" FormatString="0" />
+                </Grid>
+
+                <TextBlock Text="Formatting" Classes="section" />
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Brace style" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1" Name="BraceStyleBox" Width="160">
+                        <ComboBoxItem>same-line</ComboBoxItem>
+                        <ComboBoxItem>next-line</ComboBoxItem>
+                    </ComboBox>
+                </Grid>
+                <CheckBox Name="TrimToggle" Content="Trim trailing whitespace on save" />
+                <CheckBox Name="FinalNewlineToggle" Content="Ensure a final newline on save" />
+
+                <TextBlock Text="Appearance" Classes="section" />
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Theme" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1" Name="ThemeBox" Width="220" />
+                </Grid>
+
+                <TextBlock Text="Behaviour" Classes="section" />
+                <CheckBox Name="BackgroundAgentToggle"
+                          Content="Keep a warm background agent for instant opens" />
+                <CheckBox Name="MarkdownPreviewToggle"
+                          Content="Open the preview by default for Markdown files" />
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="Global hotkey" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Name="HotkeyBox" Width="220"
+                             Watermark="e.g. Ctrl+Space" />
+                </Grid>
+                <TextBlock Name="HotkeyWarning" Foreground="#f85149" FontSize="12"
+                           IsVisible="False" TextWrapping="Wrap" />
+                <TextBlock Text="Some changes (the hotkey and the background agent) take effect next time Jot starts."
+                           Foreground="#8b949e" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+
+    <Window.Styles>
+        <Style Selector="TextBlock.section">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,14,0,4" />
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="Margin" Value="0,2" />
+        </Style>
+    </Window.Styles>
+</Window>

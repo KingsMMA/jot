@@ -34,7 +34,10 @@ public partial class MainWindow : Window
     private readonly EditingOptions _editingOptions = new();
     private readonly FoldingManager _foldingManager;
     private readonly DispatcherTimer _foldingTimer;
-    private readonly JotConfig _config;
+    private JotConfig _config;
+
+    /// <summary>Raised when the settings editor saves a new configuration.</summary>
+    public event Action<JotConfig>? SettingsSaved;
     private readonly Grid _editorGrid;
     private readonly Border _previewHost;
     private readonly GridSplitter _previewSplitter;
@@ -333,8 +336,8 @@ public partial class MainWindow : Window
             case EditorCommand.ToggleMarkdownPreview:
                 ToggleMarkdownPreview();
                 break;
-            case EditorCommand.OpenConfig:
-                OpenConfig();
+            case EditorCommand.OpenSettings:
+                OpenSettings();
                 break;
             default:
                 return;
@@ -459,6 +462,25 @@ public partial class MainWindow : Window
     {
         ConfigStore.LoadOrCreateConfig();
         OpenFile(ConfigStore.ConfigPath);
+    }
+
+    /// <summary>Opens the settings editor; on save, notifies listeners with the new configuration.</summary>
+    public async void OpenSettings()
+    {
+        Activate();
+        var dialog = new Settings.SettingsWindow(_config, _theme, onEditRaw: OpenConfig);
+        var result = await dialog.ShowDialog<JotConfig?>(this);
+        if (result is not null)
+            SettingsSaved?.Invoke(result);
+    }
+
+    /// <summary>Adopts a new configuration and applies everything that can change without a restart.</summary>
+    public void ApplyNewConfig(JotConfig config)
+    {
+        _config = config;
+        ApplyConfig();
+        ApplyTheme(Themes.Get(_config.Theme));
+        UpdateDiagnostics();
     }
 
     private void Save()

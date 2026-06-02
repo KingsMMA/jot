@@ -13,7 +13,7 @@ public class KeyBindingsTests
     [InlineData(Key.F, KeyModifiers.Control | KeyModifiers.Shift, EditorCommand.Format)]
     [InlineData(Key.F, KeyModifiers.Alt | KeyModifiers.Shift, EditorCommand.Format)]
     [InlineData(Key.V, KeyModifiers.Control | KeyModifiers.Shift, EditorCommand.ToggleMarkdownPreview)]
-    [InlineData(Key.OemComma, KeyModifiers.Control, EditorCommand.OpenConfig)]
+    [InlineData(Key.OemComma, KeyModifiers.Control, EditorCommand.OpenSettings)]
     public void Resolve_MapsShortcuts(Key key, KeyModifiers modifiers, EditorCommand expected)
     {
         Assert.Equal(expected, KeyMap.Resolve(key, modifiers));

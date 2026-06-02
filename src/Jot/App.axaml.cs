@@ -40,6 +40,8 @@ public partial class App : Application
             var startup = Program.Startup;
             if (!startup.IsAgent)
                 ShowFile(startup.Path, startup.OpenPreview);
+            if (startup.OpenSettings)
+                OpenSettings();
             // The agent stays hidden and warm; its window is created on the first request.
         }
 
@@ -91,8 +93,8 @@ public partial class App : Application
         var openLast = new NativeMenuItem("Open last file");
         openLast.Click += (_, _) => ShowFile(null, openPreview: false);
 
-        var editConfig = new NativeMenuItem("Edit configuration");
-        editConfig.Click += (_, _) => ShowFile(ConfigStore.ConfigPath, openPreview: false);
+        var settings = new NativeMenuItem("Settings…");
+        settings.Click += (_, _) => OpenSettings();
 
         var themeMenu = new NativeMenuItem("Theme") { Menu = BuildThemeMenu() };
 
@@ -103,7 +105,7 @@ public partial class App : Application
 
         var menu = new NativeMenu();
         menu.Items.Add(openLast);
-        menu.Items.Add(editConfig);
+        menu.Items.Add(settings);
         menu.Items.Add(themeMenu);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_hotkeyStatus);
@@ -142,6 +144,21 @@ public partial class App : Application
                 item.IsChecked = string.Equals(item.Header, Theming.Themes.Get(themeId).Name, StringComparison.Ordinal);
     }
 
+    private void OpenSettings()
+    {
+        // Make sure a window exists to host the dialog, without disturbing the current document.
+        if (_window is null) ShowFile(null, openPreview: false);
+        else BringToFront(_window);
+        _window?.OpenSettings();
+    }
+
+    private void OnSettingsSaved(JotConfig config)
+    {
+        _config = config;
+        ConfigStore.SaveConfig(config);
+        _window?.ApplyNewConfig(config);
+    }
+
     private void Quit()
     {
         _hotkey?.Dispose();
@@ -175,6 +192,7 @@ public partial class App : Application
         if (_window is null)
         {
             _window = new MainWindow(_config, effectivePath, openPreview);
+            _window.SettingsSaved += OnSettingsSaved;
             _window.Show();
         }
         else

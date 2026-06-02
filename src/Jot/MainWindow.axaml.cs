@@ -410,15 +410,16 @@ public partial class MainWindow : Window
 
         // Window backdrop: a background image, the system acrylic material, or a solid colour.
         // The frosted material is tinted with the theme's background so each acrylic theme keeps its
-        // own colour (a neutral slate for "acrylic", a lilac haze for "acrylic-lilac", and so on).
+        // own colour (a neutral slate for "acrylic", a lilac haze for "acrylic-lilac", and so on). The
+        // material is always assigned — never left null — because Avalonia dereferences it when the
+        // border attaches to the visual tree even while hidden, and a null Material crashes there.
         _acrylicLayer.IsVisible = theme.Acrylic;
-        if (theme.Acrylic)
-            _acrylicLayer.Material = new ExperimentalAcrylicMaterial
-            {
-                TintColor = Color.Parse(theme.Background),
-                TintOpacity = 0.8,
-                MaterialOpacity = 0.6,
-            };
+        _acrylicLayer.Material = new ExperimentalAcrylicMaterial
+        {
+            TintColor = Color.Parse(theme.Background),
+            TintOpacity = 0.8,
+            MaterialOpacity = 0.6,
+        };
         if (theme.BackgroundImage is not null && TryLoadImageBrush(theme.BackgroundImage) is { } image)
             Background = image;
         else if (theme.Acrylic)

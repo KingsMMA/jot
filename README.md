@@ -165,6 +165,10 @@ irm https://raw.githubusercontent.com/KingsMMA/jot/main/install/uninstall.ps1 | 
 Your configuration under `%APPDATA%\Jot` is kept. To remove it as well, download `uninstall.ps1` and
 run it with `-RemoveConfig`.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the notable changes in each release.
+
 ## Build from source
 
 You need the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).

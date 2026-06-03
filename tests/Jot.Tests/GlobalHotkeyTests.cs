@@ -49,4 +49,34 @@ public class GlobalHotkeyTests
     {
         Assert.False(GlobalHotkey.TryParse(hotkey, out _, out _));
     }
+
+    [Fact]
+    public void ModifiersMatch_CtrlSpace_OnlyWhenExactlyControlHeld()
+    {
+        // Ctrl alone matches.
+        Assert.True(GlobalHotkey.ModifiersMatch(ModControl, ctrl: true, alt: false, shift: false, win: false));
+        // A stray extra modifier (e.g. Ctrl+Shift) must not match Ctrl alone.
+        Assert.False(GlobalHotkey.ModifiersMatch(ModControl, ctrl: true, alt: false, shift: true, win: false));
+        // Ctrl not held does not match.
+        Assert.False(GlobalHotkey.ModifiersMatch(ModControl, ctrl: false, alt: false, shift: false, win: false));
+    }
+
+    [Fact]
+    public void ModifiersMatch_RequiresAllConfiguredModifiers()
+    {
+        var ctrlAlt = ModControl | ModAlt;
+        Assert.True(GlobalHotkey.ModifiersMatch(ctrlAlt, ctrl: true, alt: true, shift: false, win: false));
+        Assert.False(GlobalHotkey.ModifiersMatch(ctrlAlt, ctrl: true, alt: false, shift: false, win: false));
+    }
+
+    [Theory]
+    [InlineData("CabinetWClass", true)]
+    [InlineData("ExploreWClass", true)]
+    [InlineData("Progman", false)]      // the desktop
+    [InlineData("Chrome_WidgetWin_1", false)]
+    [InlineData(null, false)]
+    public void IsExplorerClass_OnlyMatchesExplorerWindows(string? className, bool expected)
+    {
+        Assert.Equal(expected, GlobalHotkey.IsExplorerClass(className));
+    }
 }

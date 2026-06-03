@@ -3,6 +3,14 @@
 All notable changes to Jot are recorded here. Versions follow simple incremental
 numbering while Jot is pre-1.0.
 
+## [0.1.5] - 2026-06-03
+
+### Fixed
+- The global hotkey now only opens Jot while File Explorer is focused. It
+  previously fired in every application, so the chord was captured inside games,
+  browsers, and other programs; now the keys pass straight through everywhere
+  except File Explorer.
+
 ## [0.1.4] - 2026-06-03
 
 ### Added
@@ -57,6 +65,7 @@ numbering while Jot is pre-1.0.
   brackets, code folding, find and replace with regular expressions, a global
   `Ctrl+Space` hotkey, and an **Edit with Jot** context-menu entry.
 
+[0.1.5]: https://github.com/KingsMMA/jot/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/KingsMMA/jot/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/KingsMMA/jot/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/KingsMMA/jot/compare/v0.1.1...v0.1.2
